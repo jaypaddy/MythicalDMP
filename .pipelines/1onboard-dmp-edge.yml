@@ -1,0 +1,123 @@
+---
+name: Build DMP Cloud Core
+
+variables:
+  - name: serviceConnectionName
+    value: general_sub
+  - name: subscriptionId
+    value: 'd0272d81-bf47-4f2b-b8dc-c56cb783e361'
+  - name: resource-location
+    value: 'eastus' 
+  - name: dmpcloud-core-dev-rgname
+    value: 'dmp-cloudcore-dev-rg'  
+  - name: dmpcloud-core-dev-arc-rgname
+    value: 'dmp-cloudcore-dev-arc-rg' 
+  - name: dmpcloud-core-dev-akv-name 
+    value: 'dmpcloudcoreakv'       
+  - name: dmpcloud-core-dev-acr-name
+    value: 'dmpcloudcoredevacr'
+  - name: dmpcloud-core-dev-law-name 
+    value: 'dmpcloudcoredevlaw'
+  - name: dmpcloud-core-dev-monwks-name 
+    value: 'dmpcloudcoremonwks'
+  - name: dmpcloud-core-dev-grafana-name 
+    value: 'dmpcloudcoregrafana'
+
+  - name: dmpedge-clusterName
+    value: 'dmpedge001'
+  - name: dmpedge-gitops-config-name
+    value: 'gitops-flux-config'    
+  - name: dmpedge-gitops-flux-config-ns
+    value: 'dmpedge-gitops-flux-config-ns'
+  - name: dmpcloud-gitops-dev-repo-name
+    value: 'dmpcloud-gitops-dev-repo'
+  - name: dmpcloud-gitops-dev-repo-url
+    value: 'https:////'
+  - name: dmpcloud-gitops-dev-https-user
+    value: 'dmpcloud-gitops-dev-https-user'
+  - name: dmpcloud-gitops-dev-https-patkey
+    value: 'dmpcloud-gitops-dev-https-patkey'
+
+  
+
+# AKS Hybrid is Arc Connected
+# Onboard Azure Monitor
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - checkout: self
+
+# Onboard Azure Monitor - Log Analytics
+  - task: Bash@3
+    displayName: 'Onboard Azure Monitor - Log Analytics'
+    inputs:
+      targetType: 'inline'
+      script: |
+          #!/bin/bash
+
+          # Get the resource id of the Log Analytics workspace
+          lawresourceid=$(az monitor log-analytics workspace show --resource-group \
+                  $(dmpcloud-core-dev-rgname) --workspace-name $(dmpcloud-core-dev-law-name) \
+                   --query id --output tsv)
+
+          az k8s-extension create --name azuremonitor-containers \
+            --cluster-name  $(dmpedge-clusterName) \
+            --resource-group  $(dmpcloud-core-dev-rgname) \
+            --cluster-type connectedClusters \
+            --extension-type Microsoft.AzureMonitor.Containers \
+            --configuration-settings logAnalyticsWorkspaceResourceID=$lawresourceid \
+            --configuration-settings  amalogs.resources.daemonset.limits.cpu=150m \
+            amalogs.resources.daemonset.limits.memory=600Mi amalogs.resources.deployment.limits.cpu=1 \
+            amalogs.resources.deployment.limits.memory=750Mi
+
+# Onboard Azure Monitor - Prometheus Metrics
+  - task: Bash@3
+    displayName: 'Onboard Azure Monitor - Prometheus Metrics and Connect Grafana'
+    inputs:
+      targetType: 'inline'
+      script: |
+          #!/bin/bash
+
+          # Get the resource id of the Azure Monitor workspace
+          monwksresourceid=$(az monitor log-analytics workspace show --resource-group \
+                  $(dmpcloud-core-dev-rgname) --workspace-name $(dmpcloud-core-dev-monwks-name) \
+                   --query id --output tsv)
+          
+          # Get Grafana resourceid
+          grafanaresourceid=$(az resource show --name S(dmpcloud-core-dev-grafana-name) \
+            --resource-group S(dmpcloud-core-dev-rg) \
+            --resource-type "Microsoft.Monitor/accounts" \
+            --query id --output tsv)
+
+          az k8s-extension create --name azuremonitor-metrics \
+            --cluster-name $(dmpedge-clusterName) \
+            --resource-group $(dmpcloud-core-dev-arc-rgname) \
+            --cluster-type connectedClusters \
+            --extension-type Microsoft.AzureMonitor.Containers.Metrics \
+            --configuration-settings azure-monitor-workspace-resource-id=$monwksresourceid \
+            grafana-resource-id=$grafanaresourceid
+          
+# Onboard Flux GitOps Configuration
+  - task: Bash@3
+    displayName: 'Onboard Azure Monitor - Prometheus Metrics and Connect Grafana'
+    inputs:
+      targetType: 'inline'
+      script: |
+          #!/bin/bash
+          az k8s-configuration flux create \
+            --name $(dmpedge-gitops-config-name) \
+            --cluster-name $(dmpedge-clusterName) \
+            --namespace $(dmpedge-gitops-flux-config-ns) \
+            --resource-group $(dmpcloud-core-dev-arc-rgname) \
+            --url $(dmpcloud-gitops-dev-repo-url) \
+            --https-user $(dmpcloud-gitops-dev-https-user) \
+            --https-key $(dmpcloud-gitops-dev-https-patkey) \
+            --scope cluster \
+            --cluster-type connectedClusters \
+            --branch master \
+            --kustomization name=platform prune=true path=/Platform \
+            --kustomization name=apps path=/$(dmpedge-clusterName) prune=true dependsOn=\["platform"\]
+
+
