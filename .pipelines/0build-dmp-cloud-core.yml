@@ -30,10 +30,6 @@ parameters:
   - name: dmpcloud-core-subcon-applicationId
     type: string
     default:    
-  - name: dmpcloud-core-env-grafana-admins-principaltypes
-    type: string
-    # Mecit Mounir Group
-    default: 'User User Group'       
 
 
 variables:
