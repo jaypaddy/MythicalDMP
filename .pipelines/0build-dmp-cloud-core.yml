@@ -86,7 +86,7 @@ steps:
         #!/bin/bash   
         echo $0 $1
         # Create the main resource group
-        rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/${{variables.dmpcloudcoreenvabbreviation}}/$2/"`
+        rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/'env'/${{variables.dmpcloudcoreenvabbreviation}}/"`
         az group create --name $rgname --location $3 
         az tag create --resource-group $rgname --tags $4
 
