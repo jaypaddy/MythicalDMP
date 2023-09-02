@@ -9,7 +9,7 @@ parameters:
   - name: dmpcloudcoreenvabbreviation
     type: string
     default: 'dev' 
-  - name: dmpcloud-core-rg-tags
+  - name: dmpcloudcorergtags
     type: object
     default: {
       "environment": "dev",
@@ -89,7 +89,7 @@ steps:
           # Create the main resource group
           rgname=`echo $(dmpcloudcoreenvrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
           az group create --name $rgname --location $(resourcelocation)
-          az tag create --resource-group $rgname --tags $(resourcegrouptags)
+          az tag create --resource-group $rgname --tags $(dmpcloudcorergtags)
 
 # Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
   - task: AzureCLI@2
@@ -180,7 +180,7 @@ steps:
           arcrgname =`echo $(dmpcloudcoreenvarcrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
 
           az group create --name $rgname --location $(resourcelocation)
-          az tag create --resource-group $arcrgname --tags $(resourcegrouptags)
+          az tag create --resource-group $arcrgname --tags $(dmpcloudcorergtags)
 
 # Assign Policies such that any Cluster that gets onboarded to Arc for Kubernetes the following Policies will apply
   - task: AzureCLI@2
