@@ -4,7 +4,7 @@ name: Build DMP Cloud Core
 parameters:
   - name: serviceConnectionName
     type: string
-    default: ''
+    default: 'mythicalDMPSubSPN'
   - name: resource-location
     type: string
     default: 'eastus' 
