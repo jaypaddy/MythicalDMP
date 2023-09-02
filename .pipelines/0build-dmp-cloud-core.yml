@@ -19,17 +19,21 @@ parameters:
       "project": "dmpcloud-core"
     }
   - name: dmpcloud-core-env-grafana-admins-principalids
+    type: string
     #  Mounir EGA-GRAFANA-ADMINS
-    value: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
+    default: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
   - name: dmpcloud-core-env-grafana-admins-principaltypes
+    type: string
     # Mounir EGA-GRAFANA-ADMINS
-    value: ' User Group' 
+    default: ' User Group' 
   # Grab from KV
   - name: dmpcloud-core-subcon-applicationId
-    value:    
+    type: string
+    default:    
   - name: dmpcloud-core-env-grafana-admins-principaltypes
+    type: string
     # Mecit Mounir Group
-    value: 'User User Group'       
+    default: 'User User Group'       
 
 
 variables:
