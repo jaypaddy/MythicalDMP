@@ -16,16 +16,16 @@ parameters:
       "costCenter": "dmp",
       "project": "dmpcloud-core"
     }
-  - name: dmpcloud-core-env-grafana-admins-principalids
+  - name: dmpcloudcoreenvgrafanaadminsprincipalids
     type: string
     #  Mounir EGA-GRAFANA-ADMINS
     default: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
-  - name: dmpcloud-core-env-grafana-admins-principaltypes
+  - name: dmpcloud-coreenvgrafanaadminsprincipaltypes
     type: string
     # Mounir EGA-GRAFANA-ADMINS
     default: ' User Group' 
   # Grab from KV
-  - name: dmpcloud-core-subcon-applicationId
+  - name: dmpcloudcoresubconapplicationId
     type: string
     default:    
 
@@ -34,21 +34,21 @@ variables:
     # concatenate "dmpcloud-core-" with parameter dmpcloudcoreenvabbreviation and suffix with "-rg"
     #Resource Groups
   - name: dmpcloudcoreenvrgname
-    value: replace('dmp-cloudcore-ENV-rg' , 'ENV', dmpcloudcoreenvabbreviation) 
+    value: dmpcloudcoreENVrg 
   - name: dmpcloudcoreenvarcrgname
-    value: replace('dmp-cloudcore-ENV-arc-rg' , 'ENV',dmpcloudcoreenvabbreviation ) 
+    value: dmp-cloudcoreENVarcrg
 
     #Resources
-  - name: dmpcloud-core-env-akv-name 
+  - name: dmpcloudcoreenvakvname 
     value: dmpcloudcoreENVakv 
   - name: dmpcloudcoreenvacrname
-    value: replace('dmpcloudcoreENVacr' , 'ENV',dmpcloudcoreenvabbreviation ) 
+    value: dmpcloudcoreENVacr
   - name: dmpcloudcoreenvlawname 
-    value: replace('dmpcloudcoreENVlaw' , 'ENV',dmpcloudcoreenvabbreviation ) 
+    value: dmpcloudcoreENVlaw
   - name: dmpcloudcoreenvmonwksname 
-    value: replace('dmpcloudcoreENVmonwks' , 'ENV',dmpcloudcoreenvabbreviation ) 
+    value: dmpcloudcoreENVmonwks
   - name: dmpcloudcoreenvgrafananame 
-    value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloudcoreenvabbreviation ) 
+    value: dmpcloudcoreENVgrafana
  
 
    
@@ -164,8 +164,8 @@ steps:
           az grafana create --name $grafananame \
           --resource-group $rgname \
           --location $dmpcloudcoreresourcelocation \
-          --principal-id $(dmpcloud-core-env-grafana-admins-principalids) \
-          --principal-types $(dmpcloud-core-env-grafana-admins-principaltypes)
+          --principal-id $(dmpcloudcoreenvgrafanaadminsprincipalids) \
+          --principal-types $(dmpcloud-coreenvgrafanaadminsprincipaltypes)
 
 # Create resource group for Arc for Kubernetes 
   - task: AzureCLI@2
