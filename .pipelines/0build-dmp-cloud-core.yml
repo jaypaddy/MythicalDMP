@@ -56,7 +56,7 @@ variables:
   - name: dmpcloud-core-env-grafana-name 
     value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation) 
   - name: dmpcloud-core-env-grafana-name 
-    default: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation) 
+    value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation) 
  
 
    
@@ -81,29 +81,31 @@ steps:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
-          #!/bin/bash
-          az account show
+        #!/bin/bash
+        az account show
 
 
 # Create resource group for dmpcloud-core-env-rgname
-  - task: Bash@3
+  - task: AzureCLI@2
     displayName: 'Create Resource Group for DMP Cloud Core'
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
-      targetType: 'inline'
-      script: |
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
           #!/bin/bash   
           # Create the main resource group
           az group create --name ${{ variables.dmpcloud-core-env-rgname  }} --location ${{ variables.resource-location  }}
           az tag create --resource-group ${{ variables.dmpcloud-core-env-rgname  }} --tags ${{ variables.resourcegroup-tags  }}
 
 # Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
-  - task: Bash@3
+  - task: AzureCLI@2
     displayName: 'Create dmpcloud-core-env ACR'
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
-      targetType: 'inline'
-      script: |
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
           #!/bin/bash      
 
           # Create Dev ACR directory
@@ -115,12 +117,13 @@ steps:
             --location ${{ variables.resource-location  }} 
 
 # Create Dev LogAnalytics Workspace in dmp-cloud-core-dev-rg Resource Group
-  - task: Bash@3
+  - task: AzureCLI@2
     displayName: 'Create LogAnalytics Workspace'
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
-      targetType: 'inline'
-      script: |
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
           #!/bin/bash      
 
           # Create Log Analytics Workspace
@@ -130,12 +133,13 @@ steps:
             --location ${{ variables.resource-location  }} 
 
 # Create Dev Monitor Workspace in dmp-cloud-core-dev-rg Resource Group
-  - task: Bash@3
+  - task: AzureCLI@2
     displayName: 'Create Azure Monitor Workspace'
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
-      targetType: 'inline'
-      script: |
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
           #!/bin/bash           
           # Create Monitor Workspace
           az resource create --resource-group ${{ variables.dmpcloud-core-env-rg  }}  \
@@ -146,12 +150,13 @@ steps:
           --properties {}
 
 # Create Managed Grafana in dmp-cloud-core-dev-rg Resource Group
-  - task: Bash@3
+  - task: AzureCLI@2
     displayName: 'Create Azure Managed Grafana'
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
-      targetType: 'inline'
-      script: |
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
           az grafana create --name ${{ variables.dmpcloud-core-env-grafana-name  }} \
           --resource-group ${{ variables.dmpcloud-core-env-rg  }} \
           --location ${{ variables.resource-location  }} \
@@ -159,24 +164,26 @@ steps:
           --principal-types ${{ variables.dmpcloud-core-env-grafana-admins-principaltypes  }}
 
 # Create resource group for Arc for Kubernetes 
-  - task: Bash@3
+  - task: AzureCLI@2
     displayName: 'Create Resource Group for DMP Cloud Core'
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
-      targetType: 'inline'
-      script: |
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
           #!/bin/bash   
           # Create the main resource group
           az group create --name ${{ variables.dmpcloud-core-env-arc-rgname  }} --location ${{ variables.resource-location  }}
           az tag create --resource-group ${{ variables.dmpcloud-core-env-arc-rgname  }} --tags ${{ variables.resourcegroup-tags  }}
 
 # Assign Policies such that any Cluster that gets onboarded to Arc for Kubernetes the following Policies will apply
-  - task: Bash@3
+  - task: AzureCLI@2
     displayName: 'Assign Policies to Arc for Kubernetes'
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
-      targetType: 'inline'
-      script: |
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
           #!/bin/bash   
 
           subscriptionId=$(az account show --query id --output tsv)
