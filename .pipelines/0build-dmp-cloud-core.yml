@@ -148,7 +148,7 @@ steps:
           #!/bin/bash    
 
           rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
-          grafananame =`echo ${{variables.dmpcloudcoreenvgrafananame}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          grafananame=`echo ${{variables.dmpcloudcoreenvgrafananame}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
       
           az grafana create --name $grafananame \
           --resource-group $rgname \
@@ -185,6 +185,7 @@ steps:
           #!/bin/bash   
           arcrgname=`echo ${{variables.dmpcloudcoreenvarcrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
           subscriptionId=$(az account show --query id --output tsv)
+          echo 
           az policy assignment create \
             --name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension' \
             --display-name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension Assignment' \
@@ -192,8 +193,8 @@ steps:
             --policy '/providers/Microsoft.Authorization/policyDefinitions/0adc5395-9169-4b9b-8687-af838d69410a'
 
           az policy assignment create \
-            --name ''Configure installation of Flux extension on Kubernetes cluster' \
-            --display-name ''Configure installation of Flux extension on Kubernetes cluster Assignment' \
+            --name 'Configure installation of Flux extension on Kubernetes cluster' \
+            --display-name 'Configure installation of Flux extension on Kubernetes cluster Assignment' \
             --scope /subscriptions/subscriptionId/resourceGroups/$arcrgname \
             --policy '/providers/Microsoft.Authorization/policyDefinitions/f9175d5f-abc8-1dc3-bd3c-5d7476ada3d1'
           echo "Assigned Policies for Scope $arcrgname"
