@@ -56,7 +56,7 @@ variables:
   - name: dmpcloud-core-env-grafana-name 
     value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation ) 
   - name: dmpcloud-core-env-grafana-name 
-    default: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation ) 
+    value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation ) 
  
 
    
