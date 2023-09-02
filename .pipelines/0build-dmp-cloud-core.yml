@@ -84,7 +84,7 @@ steps:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
-      arguments: dmpcloudcoreenvrgname, dmpcloudcoreenvabbreviation, dmpcloudcoreresourcelocation, dmpcloudcorergtags
+      arguments: ${{variable.dmpcloudcoreenvrgname}},${{variables.dmpcloudcoreenvabbreviation}}, ${{variables.dmpcloudcoreresourcelocation}}, ${{variables.dmpcloudcorergtags}}
       inlineScript: |
         #!/bin/bash   
         # Create the main resource group
