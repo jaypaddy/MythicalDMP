@@ -81,10 +81,12 @@ steps:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
-      arguments: ${{variables.dmpcloudcoreenvrgname}},${{variables.dmpcloudcoreenvabbreviation}}, ${{variables.dmpcloudcoreresourcelocation}}, ${{variables.dmpcloudcorergtags}}
       inlineScript: |
         #!/bin/bash   
-        echo $0 $1
+        echo ${{variables.dmpcloudcoreenvrgname}}
+        echo ${{variables.dmpcloudcoreenvabbreviation}}
+        echo ${{variables.dmpcloudcorergtags}}
+
         # Create the main resource group
         rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/'env'/${{variables.dmpcloudcoreenvabbreviation}}/"`
         az group create --name $rgname --location ${{variables.dmpcloudcoreresourcelocation}}
