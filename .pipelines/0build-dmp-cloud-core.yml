@@ -31,7 +31,6 @@ parameters:
 
 
 variables:
-    # concatenate "dmpcloud-core-" with parameter dmpcloudcoreenvabbreviation and suffix with "-rg"
     #Resource Groups
   - name: dmpcloudcoreenvrgname
     value: 'dmpcloudcoreENVrg' 
@@ -83,14 +82,14 @@ steps:
       scriptLocation: 'inlineScript'
       inlineScript: |
         #!/bin/bash   
-        echo ${{variables.dmpcloudcoreenvrgname}}
-        echo ${{variables.dmpcloudcoreenvabbreviation}}
-        echo ${{variables.dmpcloudcorergtags}}
+        echo ${{parameters.dmpcloudcoreenvrgname}}
+        echo ${{parameters.dmpcloudcoreresourcelocation}}
+        echo ${{parameters.dmpcloudcoreenvabbreviation}}
 
         # Create the main resource group
-        rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/'env'/${{variables.dmpcloudcoreenvabbreviation}}/"`
-        az group create --name $rgname --location ${{variables.dmpcloudcoreresourcelocation}}
-        az tag create --resource-group $rgname --tags  ${{variables.dmpcloudcorergtags}}
+        rgname=`echo ${{parameters.dmpcloudcoreenvrgname}} | sed "s/'env'/${{parameters.dmpcloudcoreenvabbreviation}}/"`
+        az group create --name $rgname --location ${{parameters.dmpcloudcoreresourcelocation}}
+        az tag create --resource-group $rgname --tags  ${{parameters.dmpcloudcorergtags}}
 
 # Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
   - task: AzureCLI@2
