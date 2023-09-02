@@ -82,12 +82,12 @@ steps:
       scriptLocation: 'inlineScript'
       inlineScript: |
         #!/bin/bash   
-        echo ${{parameters.dmpcloudcoreenvrgname}}
+        echo ${{variables.dmpcloudcoreenvrgname}}
         echo ${{parameters.dmpcloudcoreresourcelocation}}
         echo ${{parameters.dmpcloudcoreenvabbreviation}}
 
         # Create the main resource group
-        rgname=`echo ${{parameters.dmpcloudcoreenvrgname}} | sed "s/'env'/${{parameters.dmpcloudcoreenvabbreviation}}/"`
+        rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/'env'/${{parameters.dmpcloudcoreenvabbreviation}}/"`
         az group create --name $rgname --location ${{parameters.dmpcloudcoreresourcelocation}}
         az tag create --resource-group $rgname --tags  ${{parameters.dmpcloudcorergtags}}
 
