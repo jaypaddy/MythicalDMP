@@ -31,6 +31,6 @@ steps:
         #!/bin/bash   
         # Create the main resource group
         az group create --name ${{ parameters.resourceGroupName }} \
-           --location ${{ variables.resourceLocation }} \
-           --tags ${{variables.dmpcloudcorergtags}}
-        echo "Created resource group $rgname"
+           --location ${{ parameters.resourceLocation }} \
+           --tags ${{parameters.dmpcloudcorergtags}}
+        echo "Created resource group ${{ parameters.resourceGroupName }}"
