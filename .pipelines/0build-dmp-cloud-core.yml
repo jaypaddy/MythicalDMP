@@ -91,5 +91,5 @@ steps:
       inlineScript: |
         #!/bin/bash   
         # Create the main resource group
-        az group create --name $(dmpcloud-core-env-rgname) --location $(variables.resource-location)
+        az group create --name $(dmpcloud-core-env-rgname)
         az group create --name 'HELLO_RG' --location 'EastUS'
