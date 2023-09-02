@@ -48,7 +48,7 @@ steps:
 
 # Login to Azure
   - task: AzureCLI@2
-    displayName: 'Azure Login'
+    displayName: 'Azure Account'
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
@@ -113,7 +113,7 @@ steps:
           az monitor log-analytics workspace create \
             --resource-group $rgname \
             --workspace-name $lawname \
-            --location {{variables.dmpcloudcoreresourcelocation}} 
+            --location ${{variables.dmpcloudcoreresourcelocation}} 
           echo "Created Monitor Log Analytics Workspace $lawname in $rgname"
 
 # Create Dev Monitor Workspace in dmp-cloud-core-dev-rg Resource Group
@@ -132,7 +132,7 @@ steps:
           --namespace microsoft.monitor \
           --resource-type accounts \
           --name $monwksname\
-          --location $(dmpcloudcoreresourcelocation) \
+          --location ${{variables.dmpcloudcoreresourcelocation}}  \
           --properties {}
           echo "Created Monitor Monitor Workspace $monwksname in $rgname"
 
