@@ -74,7 +74,7 @@ steps:
 
 # Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
   - task: AzureCLI@2
-    displayName: 'Create dmpcloud-core-env ACR'
+    displayName: 'Create ACR'
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
@@ -88,6 +88,7 @@ steps:
           acrname=`echo ${{variables.dmpcloudcoreenvacrname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
           echo $rgname
           echo $acrname
+          az group create --name $rgname --location ${{variables.dmpcloudcoreresourcelocation}} --tags ${{variables.dmpcloudcorergtags}}
           az acr create --resource-group $rgname \
             --name $acrname \
             --sku Basic \
@@ -105,8 +106,8 @@ steps:
       scriptLocation: 'inlineScript'      
       inlineScript: |
           #!/bin/bash      
-          rgname=`echo {{variables.dmpcloudcoreenvrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
-          lawname=`echo {{variables.dmpcloudcoreenvlawname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          lawname=`echo ${{variables.dmpcloudcoreenvlawname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
 
           # Create Log Analytics Workspace
           az monitor log-analytics workspace create \
@@ -124,8 +125,8 @@ steps:
       scriptLocation: 'inlineScript'      
       inlineScript: |
           #!/bin/bash    
-          rgname=`echo {{variables.dmpcloudcoreenvrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
-          monwksname=`echo {{variables.dmpcloudcoreenvmonwksname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          monwksname=`echo ${{variables.dmpcloudcoreenvmonwksname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
           # Create Monitor Workspace
           az resource create --resource-group $rgname  \
           --namespace microsoft.monitor \
@@ -146,14 +147,14 @@ steps:
       inlineScript: |
           #!/bin/bash    
 
-          rgname=`echo {{variables.dmpcloudcoreenvrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
-          grafananame =`echo {{variables.dmpcloudcoreenvgrafananame}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          grafananame =`echo ${{variables.dmpcloudcoreenvgrafananame}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
       
           az grafana create --name $grafananame \
           --resource-group $rgname \
-          --location {{variables.dmpcloudcoreresourcelocation}} \
+          --location ${{variables.dmpcloudcoreresourcelocation}} \
           --principal-id ${{variables.dmpcloudcoreenvgrafanaadminsprincipalids}} \
-          --principal-types {{variables.dmpcloud-coreenvgrafanaadminsprincipaltypes}}
+          --principal-types ${{variables.dmpcloud-coreenvgrafanaadminsprincipaltypes}}
           echo "Created Azure Managed Grafana $grafananame in $rgname"
 
 
@@ -167,9 +168,9 @@ steps:
       inlineScript: |
           #!/bin/bash   
           # Create the main resource group
-          arcrgname=`echo {{variables.dmpcloudcoreenvarcrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          arcrgname=`echo ${{variables.dmpcloudcoreenvarcrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
 
-          az group create --name $arcrgname --location {{variables.dmpcloudcoreresourcelocation}} --tags {{variables.dmpcloudcorergtags}}
+          az group create --name $arcrgname --location ${{variables.dmpcloudcoreresourcelocation}} --tags ${{variables.dmpcloudcorergtags}}
           echo "Created Resource Group for DMP Arc for Kubernetes $arcrgname"
 
 
@@ -182,7 +183,7 @@ steps:
       scriptLocation: 'inlineScript'      
       inlineScript: |
           #!/bin/bash   
-          arcrgname=`echo {{variables.dmpcloudcoreenvarcrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          arcrgname=`echo ${{variables.dmpcloudcoreenvarcrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
           subscriptionId=$(az account show --query id --output tsv)
           az policy assignment create \
             --name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension' \
