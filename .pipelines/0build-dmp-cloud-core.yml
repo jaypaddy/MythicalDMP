@@ -72,7 +72,7 @@ steps:
         echo ${{join(' ',variables.dmpcloudcorergtags)}}
 
         # Create the main resource group
-        rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/'env'/${{variables.dmpcloudcoreenvabbreviation}}/"`
+        rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/'ENV'/${{variables.dmpcloudcoreenvabbreviation}}/"`
         az group create --name $rgname --location ${{variables.dmpcloudcoreresourcelocation}}
         az tag create --resource-group $rgname --tags  ${{variables.dmpcloudcorergtags}}
 
