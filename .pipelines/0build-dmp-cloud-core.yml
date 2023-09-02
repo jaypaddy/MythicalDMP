@@ -3,7 +3,7 @@ parameters:
   - name: serviceConnectionName
     type: string
     default: 'mythicalDMPSubSPN'
-  - name: resourcelocation
+  - name: dmpcloudcoreresourcelocation
     type: string
     default: 'eastus' 
   - name: dmpcloudcoreenvabbreviation
@@ -88,7 +88,7 @@ steps:
           #!/bin/bash   
           # Create the main resource group
           rgname=`echo $(dmpcloudcoreenvrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-          az group create --name $rgname --location $(resourcelocation)
+          az group create --name $rgname --location $(dmpcloudcoreresourcelocation)
           az tag create --resource-group $rgname --tags $(dmpcloudcorergtags)
 
 # Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
@@ -108,7 +108,7 @@ steps:
           az acr create --resource-group $rgname \
             --name $(acrname) \
             --sku Basic --admin-enabled false \
-            --location $(resourcelocation) 
+            --location $(dmpcloudcoreresourcelocation) 
 
 # Create Dev LogAnalytics Workspace in dmp-cloud-core-dev-rg Resource Group
   - task: AzureCLI@2
@@ -126,7 +126,7 @@ steps:
           az monitor log-analytics workspace create \
             --resource-group $rgname \
             --workspace-name $lawname \
-            --location $(resourcelocation) 
+            --location $(dmpcloudcoreresourcelocation) 
 
 # Create Dev Monitor Workspace in dmp-cloud-core-dev-rg Resource Group
   - task: AzureCLI@2
@@ -145,7 +145,7 @@ steps:
           --namespace microsoft.monitor \
           --resource-type accounts \
           --name $monwksname\
-          --location $(resourcelocation) \
+          --location $(dmpcloudcoreresourcelocation) \
           --properties {}
 
 # Create Managed Grafana in dmp-cloud-core-dev-rg Resource Group
@@ -163,7 +163,7 @@ steps:
       
           az grafana create --name $grafananame \
           --resource-group $rgname \
-          --location $resourcelocation \
+          --location $dmpcloudcoreresourcelocation \
           --principal-id $(dmpcloud-core-env-grafana-admins-principalids) \
           --principal-types $(dmpcloud-core-env-grafana-admins-principaltypes)
 
@@ -179,7 +179,7 @@ steps:
           # Create the main resource group
           arcrgname =`echo $(dmpcloudcoreenvarcrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
 
-          az group create --name $rgname --location $(resourcelocation)
+          az group create --name $rgname --location $(dmpcloudcoreresourcelocation)
           az tag create --resource-group $arcrgname --tags $(dmpcloudcorergtags)
 
 # Assign Policies such that any Cluster that gets onboarded to Arc for Kubernetes the following Policies will apply
