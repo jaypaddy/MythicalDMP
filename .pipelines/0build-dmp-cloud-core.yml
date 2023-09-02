@@ -12,7 +12,7 @@ variables:
   - name: dmpcloudcoreenvgrafanaadminsprincipalids
     #  Mounir EGA-GRAFANA-ADMINS
     value: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
-  - name: dmpcloud-coreenvgrafanaadminsprincipaltypes
+  - name: dmpcloudcoreenvgrafanaadminsprincipaltypes
     # Mounir EGA-GRAFANA-ADMINS
     value: ' User Group' 
 
