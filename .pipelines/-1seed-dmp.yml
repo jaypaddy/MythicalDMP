@@ -3,28 +3,34 @@ name: Seed DMP Cloud Core
 
 parameters:
   - name: serviceConnectionName
-    value: mythicalDMPSubSPN
-  - name: subscriptionId
-    value: 'd0272d81-bf47-4f2b-b8dc-c56cb783e361'
-  - name: resource-location
-    value: 'eastus' 
-  - name: dmpcloud-core-dev-rgname
-    value: 'dmp-cloudcore-dev-rg'  
-  - name: dmpcloud-core-dev-arc-rgname
-    value: 'dmp-cloudcore-dev-arc-rg'
-  - name: dmpcloud-core-dev-akv-name 
-    value: 'dmpcloudcoreakv'       
-  - name: dmpcloud-core-dev-acr-name
-    value: 'dmpcloudcoredevacr'
-  - name: dmpcloud-core-dev-law-name 
-    value: 'dmpcloudcoredevlaw'
-  - name: dmpcloud-core-dev-monwks-name 
-    value: 'dmpcloudcoremonwks'
-  - name: dmpcloud-core-dev-grafana-name 
-    value: 'dmpcloudcoregrafana'
-  - name: dmpcloud-core-dev-grafana-admins-principalids
-    # Mecit Mounir EGA-GRAFANA-ADMINS
-    value: 'a5564437-6ba3-4a1e-97a9-778ebdca5af4 79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
-  - name: dmpcloud-core-dev-grafana-admins-principaltypes
-    # Mecit Mounir Group
-    value: 'User User Group'  
+    type: string
+    default: mythicalDMPSubSPN
+  - name: resourceGroupName
+    type: string
+    default: 'dmp-cloud-rg' 
+  - name: resourceLocation
+    type: string
+    default: 'EastUS'  
+  - name: dmpcloudcorergtags
+    type: string
+    default: "environment=dev costCenter=dmp project=dmpcloud-core"    
+
+pool:
+  vmImage: ubuntu-20.04
+
+steps:
+  - checkout: self
+
+  - task: AzureCLI@2
+    displayName: 'Create Resource Group for DMP Cloud Core'
+    inputs:
+      azureSubscription: 'mythicalDMPSubSPN'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash   
+        # Create the main resource group
+        az group create --name ${{ parameters.resourceGroupName }} \
+           --location ${{ variables.resourceLocation }} \
+           --tags ${{variables.dmpcloudcorergtags}}
+        echo "Created resource group $rgname"
