@@ -73,8 +73,8 @@ steps:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
-          #!/bin/bash
-          az account show
+        #!/bin/bash
+        az account show
 
 
 # Create resource group for dmpcloud-core-env-rgname
@@ -83,6 +83,7 @@ steps:
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
+      scriptLocation: 'inlineScript'
       inlineScript: |
           #!/bin/bash   
           # Create the main resource group
@@ -95,6 +96,7 @@ steps:
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
       inlineScript: |
           #!/bin/bash      
 
@@ -112,6 +114,7 @@ steps:
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
       inlineScript: |
           #!/bin/bash      
 
@@ -127,6 +130,7 @@ steps:
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
       inlineScript: |
           #!/bin/bash           
           # Create Monitor Workspace
@@ -143,12 +147,13 @@ steps:
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
+      scriptLocation: 'inlineScript'
       inlineScript: |
-          az grafana create --name $(dmpcloud-core-env-grafana-name) \
-          --resource-group $(dmpcloud-core-env-rg) \
-          --location $(resource-location) \
-          --principal-id $(dmpcloud-core-env-grafana-admins-principalids) \
-          --principal-types $(dmpcloud-core-env-grafana-admins-principaltypes)
+        az grafana create --name $(dmpcloud-core-env-grafana-name) \
+        --resource-group $(dmpcloud-core-env-rg) \
+        --location $(resource-location) \
+        --principal-id $(dmpcloud-core-env-grafana-admins-principalids) \
+        --principal-types $(dmpcloud-core-env-grafana-admins-principaltypes)
 
 # Create resource group for Arc for Kubernetes 
   - task: AzureCLI@2
@@ -156,6 +161,7 @@ steps:
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
       inlineScript: |
           #!/bin/bash   
           # Create the main resource group
@@ -168,6 +174,7 @@ steps:
     inputs:
       azureSubscription: 'mythicalDMPSubSPN'
       scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
       inlineScript: |
           #!/bin/bash   
 
