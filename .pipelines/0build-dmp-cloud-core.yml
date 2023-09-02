@@ -20,7 +20,7 @@ variables:
   - name: dmpcloudcoreenvrgname
     value: 'dmpcloudcoreENVrg' 
   - name: dmpcloudcoreenvarcrgname
-    value: 'dmp-cloudcoreENVarcrg'
+    value: 'dmpcloudcoreENVarcrg'
 
     #Resources
   - name: dmpcloudcoreenvakvname 
