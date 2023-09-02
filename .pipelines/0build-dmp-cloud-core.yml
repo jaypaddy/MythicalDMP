@@ -90,7 +90,8 @@ steps:
           echo $acrname
           az acr create --resource-group $rgname \
             --name $acrname \
-            --sku Basic --admin-enabled false \
+            --sku Basic \
+            --admin-enabled false \
             --location ${{variables.dmpcloudcoreresourcelocation}} 
 
 # Create Dev LogAnalytics Workspace in dmp-cloud-core-dev-rg Resource Group
