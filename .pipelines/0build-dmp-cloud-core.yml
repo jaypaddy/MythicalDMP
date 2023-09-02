@@ -95,7 +95,7 @@ steps:
       inlineScript: |
         #!/bin/bash   
         # Create the main resource group
-        az group create --name $(dmpcloud-core-env-rgname) --location ${{ variables.resource-location  }}
+        az group create --name $(dmpcloud-core-env-rgname) --location $(variables.resource-location)
         az tag create --resource-group ${{ variables.dmpcloud-core-env-rgname  }} --tags ${{ variables.resourcegroup-tags  }}
 
 
