@@ -6,7 +6,7 @@ parameters:
   - name: resource-location
     type: string
     default: 'eastus' 
-  - name: dmpcloud-core-env-abbreviation
+  - name: dmpcloudcoreenvabbreviation
     type: string
     default: 'dev' 
   - name: dmpcloud-core-rg-tags
@@ -31,24 +31,24 @@ parameters:
 
 
 variables:
-    # concatenate "dmpcloud-core-" with parameter dmpcloud-core-env-abbreviation and suffix with "-rg"
+    # concatenate "dmpcloud-core-" with parameter dmpcloudcoreenvabbreviation and suffix with "-rg"
     #Resource Groups
-  - name: dmpcloud-core-env-rgname
-    value: replace('dmp-cloudcore-ENV-rg' , 'ENV', dmpcloud-core-env-abbreviation) 
+  - name: dmpcloudcoreenvrgname
+    value: replace('dmp-cloudcore-ENV-rg' , 'ENV', dmpcloudcoreenvabbreviation) 
   - name: dmpcloud-core-env-arc-rgname
-    value: replace('dmp-cloudcore-ENV-arc-rg' , 'ENV',dmpcloud-core-env-abbreviation ) 
+    value: replace('dmp-cloudcore-ENV-arc-rg' , 'ENV',dmpcloudcoreenvabbreviation ) 
 
     #Resources
   - name: dmpcloud-core-env-akv-name 
-    value: replace('dmpcloudcoreENVakv' , 'ENV',dmpcloud-core-env-abbreviation ) 
-  - name: dmpcloud-core-env-acr-name
-    value: replace('dmpcloudcoreENVacr' , 'ENV',dmpcloud-core-env-abbreviation ) 
+    value: dmpcloudcoreENVakv 
+  - name: dmpcloudcoreenvacrname
+    value: replace('dmpcloudcoreENVacr' , 'ENV',dmpcloudcoreenvabbreviation ) 
   - name: dmpcloud-core-env-law-name 
-    value: replace('dmpcloudcoreENVlaw' , 'ENV',dmpcloud-core-env-abbreviation ) 
+    value: replace('dmpcloudcoreENVlaw' , 'ENV',dmpcloudcoreenvabbreviation ) 
   - name: dmpcloud-core-env-monwks-name 
-    value: replace('dmpcloudcoreENVmonwks' , 'ENV',dmpcloud-core-env-abbreviation ) 
+    value: replace('dmpcloudcoreENVmonwks' , 'ENV',dmpcloudcoreenvabbreviation ) 
   - name: dmpcloud-core-env-grafana-name 
-    value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation ) 
+    value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloudcoreenvabbreviation ) 
  
 
    
@@ -61,7 +61,7 @@ steps:
   - checkout: self
 
 
-#dmpcloud-core-env-rgname [LogAnalytics, Monitor, ACR, Grafana]
+#dmpcloudcoreenvrgname [LogAnalytics, Monitor, ACR, Grafana]
 #dmpcloud-core-env-arc-rgname [Arc for Kubernetes]
 #dmpcloud-core-env-akv-name [KeyVault]
 
@@ -77,7 +77,7 @@ steps:
         az account show
 
 
-# Create resource group for dmpcloud-core-env-rgname
+# Create resource group for dmpcloudcoreenvrgname
   - task: AzureCLI@2
     displayName: 'Create Resource Group for DMP Cloud Core'
     inputs:
@@ -87,8 +87,9 @@ steps:
       inlineScript: |
           #!/bin/bash   
           # Create the main resource group
-          az group create --name $(dmpcloud-core-env-rgname) --location $(resource-location)
-          az tag create --resource-group $(dmpcloud-core-env-rgname) --tags $(resourcegroup-tags)
+          rgname=`echo $(dmpcloudcoreenvrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
+          az group create --name $rgname --location $(resource-location)
+          az tag create --resource-group $rgname --tags $(resourcegroup-tags)
 
 # Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
   - task: AzureCLI@2
@@ -102,9 +103,9 @@ steps:
 
           # Create Dev ACR directory
           #             --allow-exports true  
-
-          az acr create --resource-group $(dmpcloud-core-env-rgname) \
-            --name $(dmpcloud-core-env-acr-name) \
+          rgname=`echo $(dmpcloudcoreenvrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
+          az acr create --resource-group $rgname \
+            --name $(dmpcloudcoreenvacrname) \
             --sku Basic --admin-enabled false \
             --location $(resource-location) 
 
