@@ -1,36 +1,21 @@
 
-parameters:
-  - name: serviceConnectionName
-    type: string
-    default: 'mythicalDMPSubSPN'
-  - name: dmpcloudcoreresourcelocation
-    type: string
-    default: 'eastus' 
-  - name: dmpcloudcoreenvabbreviation
-    type: string
-    default: 'dev' 
-  - name: dmpcloudcorergtags
-    type: object
-    default: {
-      "environment": "dev",
-      "costCenter": "dmp",
-      "project": "dmpcloud-core"
-    }
-  - name: dmpcloudcoreenvgrafanaadminsprincipalids
-    type: string
-    #  Mounir EGA-GRAFANA-ADMINS
-    default: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
-  - name: dmpcloud-coreenvgrafanaadminsprincipaltypes
-    type: string
-    # Mounir EGA-GRAFANA-ADMINS
-    default: ' User Group' 
-  # Grab from KV
-  - name: dmpcloudcoresubconapplicationId
-    type: string
-    default:    
-
 
 variables:
+  - name: serviceConnectionName
+    value: 'mythicalDMPSubSPN'
+  - name: dmpcloudcoreresourcelocation
+    value: 'eastus' 
+  - name: dmpcloudcoreenvabbreviation
+    value: 'dev' 
+  - name: dmpcloudcorergtags
+    value: "environment=dev costCenter=dmp project=dmpcloud-core"
+  - name: dmpcloudcoreenvgrafanaadminsprincipalids
+    #  Mounir EGA-GRAFANA-ADMINS
+    value: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
+  - name: dmpcloud-coreenvgrafanaadminsprincipaltypes
+    # Mounir EGA-GRAFANA-ADMINS
+    value: ' User Group' 
+
     #Resource Groups
   - name: dmpcloudcoreenvrgname
     value: 'dmpcloudcoreENVrg' 
@@ -83,13 +68,13 @@ steps:
       inlineScript: |
         #!/bin/bash   
         echo ${{variables.dmpcloudcoreenvrgname}}
-        echo ${{parameters.dmpcloudcoreresourcelocation}}
-        echo ${{parameters.dmpcloudcoreenvabbreviation}}
+        echo ${{variables.dmpcloudcoreresourcelocation}}
+        echo ${{join(' ',variables.dmpcloudcorergtags)}}
 
         # Create the main resource group
-        rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/'env'/${{parameters.dmpcloudcoreenvabbreviation}}/"`
-        az group create --name $rgname --location ${{parameters.dmpcloudcoreresourcelocation}}
-        az tag create --resource-group $rgname --tags  ${{parameters.dmpcloudcorergtags}}
+        rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/'env'/${{variables.dmpcloudcoreenvabbreviation}}/"`
+        az group create --name $rgname --location ${{variables.dmpcloudcoreresourcelocation}}
+        az tag create --resource-group $rgname --tags  ${{variables.dmpcloudcorergtags}}
 
 # Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
   - task: AzureCLI@2
