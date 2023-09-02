@@ -86,10 +86,12 @@ steps:
           #             --allow-exports true  
           rgname=`echo ${{variables.dmpcloudcoreenvarcrgname}} | sed "s/'ENV'/${{variables.dmpcloudcoreenvabbreviation}}/"`
           acrname=`echo ${{variables.dmpcloudcoreenvacrname}} | sed "s/'ENV'/${{variables.dmpcloudcoreenvabbreviation}}/"`
+          echo $rgname
+          echo $acrname
           az acr create --resource-group $rgname \
             --name $acrname \
             --sku Basic --admin-enabled false \
-            --location $(dmpcloudcoreresourcelocation) 
+            --location ${{variables.dmpcloudcoreresourcelocation}} 
 
 # Create Dev LogAnalytics Workspace in dmp-cloud-core-dev-rg Resource Group
   - task: AzureCLI@2
