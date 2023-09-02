@@ -197,7 +197,7 @@ steps:
           az policy assignment create \
             --name 'DMPEdge Install Flux extension on Kubernetes cluster' \
             --display-name 'Configure installation of Flux extension on Kubernetes cluster Assignment' \
-            --scope /$subscriptions/$subscriptionId/resourceGroups/$arcrgname \
+            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname \
             --policy 'f9175d5f-abc8-1dc3-bd3c-5d7476ada3d1' \
             --mi-system-assigned \
             --location ${{variables.dmpcloudcoreresourcelocation}}
