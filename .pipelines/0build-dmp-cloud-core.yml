@@ -1,33 +1,61 @@
 ---
 name: Build DMP Cloud Core
 
-variables:
+parameters:
   - name: serviceConnectionName
-    value: general_sub
-  - name: subscriptionId
-    value: 'd0272d81-bf47-4f2b-b8dc-c56cb783e361'
+    type: string
+    default: ''
   - name: resource-location
-    value: 'eastus' 
-  - name: dmpcloud-core-dev-rgname
-    value: 'dmp-cloudcore-dev-rg'  
-  - name: dmpcloud-core-dev-arc-rgname
-    value: 'dmp-cloudcore-dev-arc-rg'
-  - name: dmpcloud-core-dev-akv-name 
-    value: 'dmpcloudcoreakv'       
-  - name: dmpcloud-core-dev-acr-name
-    value: 'dmpcloudcoredevacr'
-  - name: dmpcloud-core-dev-law-name 
-    value: 'dmpcloudcoredevlaw'
-  - name: dmpcloud-core-dev-monwks-name 
-    value: 'dmpcloudcoremonwks'
-  - name: dmpcloud-core-dev-grafana-name 
-    value: 'dmpcloudcoregrafana'
-  - name: dmpcloud-core-dev-grafana-admins-principalids
-    # Mecit Mounir EGA-GRAFANA-ADMINS
-    value: 'a5564437-6ba3-4a1e-97a9-778ebdca5af4 79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
-  - name: dmpcloud-core-dev-grafana-admins-principaltypes
+    type: string
+    default: 'eastus' 
+  - name: dmpcloud-core-env-abbreviation
+    type: string
+    default: 'dev' 
+  - name: dmpcloud-core-rg-tags
+    type: object
+    default: {
+      "environment": "dev",
+      "costCenter": "dmp",
+      "project": "dmpcloud-core"
+    }
+  - name: dmpcloud-core-env-grafana-admins-principalids
+    #  Mounir EGA-GRAFANA-ADMINS
+    value: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
+  - name: dmpcloud-core-env-grafana-admins-principaltypes
+    # Mounir EGA-GRAFANA-ADMINS
+    value: ' User Group' 
+  # Grab from KV
+  - name: dmpcloud-core-subcon-applicationId
+    value:    
+  - name: dmpcloud-core-env-grafana-admins-principaltypes
     # Mecit Mounir Group
-    value: 'User User Group'   
+    value: 'User User Group'       
+
+
+variables:
+    # concatenate "dmpcloud-core-" with parameter dmpcloud-core-env-abbreviation and suffix with "-rg"
+    #Resource Groups
+  - name: dmpcloud-core-env-rgname
+    value: replace('dmp-cloudcore-ENV-rg' , 'ENV', dmpcloud-core-env-abbreviation  }} 
+  - name: dmpcloud-core-env-arc-rgname
+    value: replace('dmp-cloudcore-ENV-arc-rg' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+
+    #Resources
+  - name: dmpcloud-core-env-akv-name 
+    value: replace('dmpcloudcoreENVakv' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+  - name: dmpcloud-core-env-acr-name
+    value: replace('dmpcloudcoreENVacr' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+  - name: dmpcloud-core-env-law-name 
+    value: replace('dmpcloudcoreENVlaw' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+  - name: dmpcloud-core-env-monwks-name 
+    value: replace('dmpcloudcoreENVmonwks' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+  - name: dmpcloud-core-env-grafana-name 
+    value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+  - name: dmpcloud-core-env-grafana-name 
+    default: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+ 
+
+   
 
 
 pool:
@@ -37,25 +65,39 @@ steps:
   - checkout: self
 
 
-#dmpcloud-core-dev-rgname [LogAnalytics, Monitor, ACR, Grafana]
-#dmpcloud-core-dev-arc-rgname [Arc for Kubernetes]
-#dmpcloud-core-dev-akv-name [KeyVault]
+#dmpcloud-core-env-rgname [LogAnalytics, Monitor, ACR, Grafana]
+#dmpcloud-core-env-arc-rgname [Arc for Kubernetes]
+#dmpcloud-core-env-akv-name [KeyVault]
 
-# Create resource group for dmpcloud-core-dev-rgname
+# Login to Azure
+  - task: AzureCLI@2
+    displayName: 'Azure Login'
+    inputs:
+      azureSubscription: 'mythicalDMPSubSPN'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+          #!/bin/bash
+          az account show
+
+
+# Create resource group for dmpcloud-core-env-rgname
   - task: Bash@3
     displayName: 'Create Resource Group for DMP Cloud Core'
     inputs:
+      azureSubscription: 'mythicalDMPSubSPN'
       targetType: 'inline'
       script: |
           #!/bin/bash   
           # Create the main resource group
-          az group create --name $(dmpcloud-core-dev-rgname) --location $(resource-location)
-          az tag create --resource-group $(dmpcloud-core-dev-rgname) --tags $(resourcegroup-tags)
+          az group create --name ${{ variables.dmpcloud-core-env-rgname  }} --location ${{ variables.resource-location  }}
+          az tag create --resource-group ${{ variables.dmpcloud-core-env-rgname  }} --tags ${{ variables.resourcegroup-tags  }}
 
-# Create dmpcloud-core-dev ACR in dmp-cloud-core-dev-rg resource group
+# Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
   - task: Bash@3
-    displayName: 'Create dmpcloud-core-dev ACR'
+    displayName: 'Create dmpcloud-core-env ACR'
     inputs:
+      azureSubscription: 'mythicalDMPSubSPN'
       targetType: 'inline'
       script: |
           #!/bin/bash      
@@ -63,79 +105,85 @@ steps:
           # Create Dev ACR directory
           #             --allow-exports true  
 
-          az acr create --resource-group $(dmpcloud-core-dev-rgname) \
-            --name $(dmpcloud-core-dev-acr-name) \
+          az acr create --resource-group ${{ variables.dmpcloud-core-env-rgname  }} \
+            --name ${{ variables.dmpcloud-core-env-acr-name  }} \
             --sku Basic --admin-enabled false \
-            --location $(resource-location) 
+            --location ${{ variables.resource-location  }} 
 
 # Create Dev LogAnalytics Workspace in dmp-cloud-core-dev-rg Resource Group
   - task: Bash@3
     displayName: 'Create LogAnalytics Workspace'
     inputs:
+      azureSubscription: 'mythicalDMPSubSPN'
       targetType: 'inline'
       script: |
           #!/bin/bash      
 
           # Create Log Analytics Workspace
           az monitor log-analytics workspace create \
-            --resource-group $(dmpcloud-core-dev-rg) \
-            --workspace-name $(dmpcloud-core-dev-law-name) \
-            --location $(resource-location) 
+            --resource-group ${{ variables.dmpcloud-core-env-rg  }} \
+            --workspace-name ${{ variables.dmpcloud-core-env-law-name  }} \
+            --location ${{ variables.resource-location  }} 
 
 # Create Dev Monitor Workspace in dmp-cloud-core-dev-rg Resource Group
   - task: Bash@3
     displayName: 'Create Azure Monitor Workspace'
     inputs:
+      azureSubscription: 'mythicalDMPSubSPN'
       targetType: 'inline'
       script: |
           #!/bin/bash           
           # Create Monitor Workspace
-          az resource create --resource-group $(dmpcloud-core-dev-rg)  \
+          az resource create --resource-group ${{ variables.dmpcloud-core-env-rg  }}  \
           --namespace microsoft.monitor \
           --resource-type accounts \
-          --name $(dmpcloud-core-dev-monwks-name) \
-          --location $(resource-location) \
+          --name ${{ variables.dmpcloud-core-env-monwks-name  }} \
+          --location ${{ variables.resource-location  }} \
           --properties {}
 
 # Create Managed Grafana in dmp-cloud-core-dev-rg Resource Group
   - task: Bash@3
     displayName: 'Create Azure Managed Grafana'
     inputs:
+      azureSubscription: 'mythicalDMPSubSPN'
       targetType: 'inline'
       script: |
-          az grafana create --name $(dmpcloud-core-dev-grafana-name) \
-          --resource-group $(dmpcloud-core-dev-rg) \
-          --location $(resource-location) \
-          --principal-id $(dmpcloud-core-dev-grafana-admins-principalids) \
-          --principal-types $(dmpcloud-core-dev-grafana-admins-principaltypes)
+          az grafana create --name ${{ variables.dmpcloud-core-env-grafana-name  }} \
+          --resource-group ${{ variables.dmpcloud-core-env-rg  }} \
+          --location ${{ variables.resource-location  }} \
+          --principal-id ${{ variables.dmpcloud-core-env-grafana-admins-principalids  }} \
+          --principal-types ${{ variables.dmpcloud-core-env-grafana-admins-principaltypes  }}
 
 # Create resource group for Arc for Kubernetes 
   - task: Bash@3
     displayName: 'Create Resource Group for DMP Cloud Core'
     inputs:
+      azureSubscription: 'mythicalDMPSubSPN'
       targetType: 'inline'
       script: |
           #!/bin/bash   
           # Create the main resource group
-          az group create --name $(dmpcloud-core-dev-arc-rgname) --location $(resource-location)
-          az tag create --resource-group $(dmpcloud-core-dev-arc-rgname) --tags $(resourcegroup-tags)
+          az group create --name ${{ variables.dmpcloud-core-env-arc-rgname  }} --location ${{ variables.resource-location  }}
+          az tag create --resource-group ${{ variables.dmpcloud-core-env-arc-rgname  }} --tags ${{ variables.resourcegroup-tags  }}
 
 # Assign Policies such that any Cluster that gets onboarded to Arc for Kubernetes the following Policies will apply
   - task: Bash@3
     displayName: 'Assign Policies to Arc for Kubernetes'
     inputs:
+      azureSubscription: 'mythicalDMPSubSPN'
       targetType: 'inline'
       script: |
           #!/bin/bash   
 
+          subscriptionId=$(az account show --query id --output tsv)
           az policy assignment create \
             --name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension' \
             --display-name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension Assignment' \
-            --scope /subscriptions/$(subscriptionId)/resourceGroups/$(dmpcloud-core-dev-arc-rgname) \
+            --scope /subscriptions/$subscriptionId/resourceGroups/${{ variables.dmpcloud-core-env-arc-rgname  }} \
             --policy '/providers/Microsoft.Authorization/policyDefinitions/0adc5395-9169-4b9b-8687-af838d69410a'
 
           az policy assignment create \
             --name ''Configure installation of Flux extension on Kubernetes cluster' \
             --display-name ''Configure installation of Flux extension on Kubernetes cluster Assignment' \
-            --scope /subscriptions/$(subscriptionId)/resourceGroups/$(dmpcloud-core-dev-arc-rgname) \
+            --scope /subscriptions/variables.subscriptionId/resourceGroups/${{ variables.dmpcloud-core-env-arc-rgname  }} \
             --policy '/providers/Microsoft.Authorization/policyDefinitions/f9175d5f-abc8-1dc3-bd3c-5d7476ada3d1'

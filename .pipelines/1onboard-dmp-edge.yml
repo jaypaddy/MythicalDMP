@@ -49,6 +49,18 @@ pool:
 steps:
   - checkout: self
 
+# Login to Azure
+  - task: AzureCLI@2
+    displayName: 'Azure Login'
+    inputs:
+      azureSubscription: $(mythicalDMPSubSPN)
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+          #!/bin/bash
+          az account show
+
+
 # Onboard Azure Monitor - Log Analytics
   - task: Bash@3
     displayName: 'Onboard Azure Monitor - Log Analytics'
