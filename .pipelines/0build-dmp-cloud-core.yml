@@ -131,7 +131,7 @@ steps:
           az resource create --resource-group $rgname  \
           --namespace microsoft.monitor \
           --resource-type accounts \
-          --name $monwksname\
+          --name $monwksname \
           --location ${{variables.dmpcloudcoreresourcelocation}}  \
           --properties {}
           echo "Created Monitor Monitor Workspace $monwksname in $rgname"
