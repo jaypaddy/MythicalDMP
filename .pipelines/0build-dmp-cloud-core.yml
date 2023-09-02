@@ -93,10 +93,11 @@ steps:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
-          #!/bin/bash   
-          # Create the main resource group
-          az group create --name ${{ variables.dmpcloud-core-env-rgname  }} --location ${{ variables.resource-location  }}
-          az tag create --resource-group ${{ variables.dmpcloud-core-env-rgname  }} --tags ${{ variables.resourcegroup-tags  }}
+        #!/bin/bash   
+        # Create the main resource group
+        az group create --name $(dmpcloud-core-env-rgname) --location ${{ variables.resource-location  }}
+        az tag create --resource-group ${{ variables.dmpcloud-core-env-rgname  }} --tags ${{ variables.resourcegroup-tags  }}
+
 
 # Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
   - task: AzureCLI@2
