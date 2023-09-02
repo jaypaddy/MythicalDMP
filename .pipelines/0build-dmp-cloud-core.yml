@@ -34,25 +34,22 @@ variables:
     # concatenate "dmpcloud-core-" with parameter dmpcloudcoreenvabbreviation and suffix with "-rg"
     #Resource Groups
   - name: dmpcloudcoreenvrgname
-    value: dmpcloudcoreENVrg 
+    value: 'dmpcloudcoreENVrg' 
   - name: dmpcloudcoreenvarcrgname
-    value: dmp-cloudcoreENVarcrg
+    value: 'dmp-cloudcoreENVarcrg'
 
     #Resources
   - name: dmpcloudcoreenvakvname 
-    value: dmpcloudcoreENVakv 
+    value: 'dmpcloudcoreENVakv' 
   - name: dmpcloudcoreenvacrname
-    value: dmpcloudcoreENVacr
+    value: 'dmpcloudcoreENVacr'
   - name: dmpcloudcoreenvlawname 
-    value: dmpcloudcoreENVlaw
+    value: 'dmpcloudcoreENVlaw'
   - name: dmpcloudcoreenvmonwksname 
-    value: dmpcloudcoreENVmonwks
+    value: 'dmpcloudcoreENVmonwks'
   - name: dmpcloudcoreenvgrafananame 
-    value: dmpcloudcoreENVgrafana
+    value: 'dmpcloudcoreENVgrafana'
  
-
-   
-
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -87,8 +84,9 @@ steps:
       arguments: ${{variables.dmpcloudcoreenvrgname}},${{variables.dmpcloudcoreenvabbreviation}}, ${{variables.dmpcloudcoreresourcelocation}}, ${{variables.dmpcloudcorergtags}}
       inlineScript: |
         #!/bin/bash   
+        echo $0 $1
         # Create the main resource group
-        rgname=`echo $1 | sed "s/'env'/$2/"`
+        rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/${{variables.dmpcloudcoreenvabbreviation}}/$2/"`
         az group create --name $rgname --location $3 
         az tag create --resource-group $rgname --tags $4
 
