@@ -154,7 +154,7 @@ steps:
           --resource-group $rgname \
           --location ${{variables.dmpcloudcoreresourcelocation}} \
           --principal-id ${{variables.dmpcloudcoreenvgrafanaadminsprincipalids}} \
-          --principal-types ${{variables.dmpcloud-coreenvgrafanaadminsprincipaltypes}}
+          --principal-types ${{variables.dmpcloudcoreenvgrafanaadminsprincipaltypes}}
           echo "Created Azure Managed Grafana $grafananame in $rgname"
 
 
