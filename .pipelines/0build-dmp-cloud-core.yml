@@ -185,16 +185,21 @@ steps:
           #!/bin/bash   
           arcrgname=`echo ${{variables.dmpcloudcoreenvarcrgname}} | sed "s/ENV/${{variables.dmpcloudcoreenvabbreviation}}/"`
           subscriptionId=$(az account show --query id --output tsv)
-          echo 
-          az policy assignment create \
-            --name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension' \
+
+          az policy assignment create  --name 'DMP Edge Install Azure Policy extension'  \
             --display-name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension Assignment' \
             --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname \
-            --policy '/providers/Microsoft.Authorization/policyDefinitions/0adc5395-9169-4b9b-8687-af838d69410a'
+            --policy '0adc5395-9169-4b9b-8687-af838d69410a' \
+            --mi-system-assigned \
+            --location ${{variables.dmpcloudcoreresourcelocation}}
+
 
           az policy assignment create \
-            --name 'Configure installation of Flux extension on Kubernetes cluster' \
+            --name 'DMPEdge Install Flux extension on Kubernetes cluster' \
             --display-name 'Configure installation of Flux extension on Kubernetes cluster Assignment' \
-            --scope /subscriptions/subscriptionId/resourceGroups/$arcrgname \
-            --policy '/providers/Microsoft.Authorization/policyDefinitions/f9175d5f-abc8-1dc3-bd3c-5d7476ada3d1'
+            --scope /$subscriptions/$subscriptionId/resourceGroups/$arcrgname \
+            --policy 'f9175d5f-abc8-1dc3-bd3c-5d7476ada3d1' \
+            --mi-system-assigned \
+            --location ${{variables.dmpcloudcoreresourcelocation}}
+
           echo "Assigned Policies for Scope $arcrgname"
