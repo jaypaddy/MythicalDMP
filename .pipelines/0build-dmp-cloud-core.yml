@@ -87,8 +87,8 @@ steps:
         echo $0 $1
         # Create the main resource group
         rgname=`echo ${{variables.dmpcloudcoreenvrgname}} | sed "s/'env'/${{variables.dmpcloudcoreenvabbreviation}}/"`
-        az group create --name $rgname --location $3 
-        az tag create --resource-group $rgname --tags $4
+        az group create --name $rgname --location ${{variables.dmpcloudcoreresourcelocation}}
+        az tag create --resource-group $rgname --tags  ${{variables.dmpcloudcorergtags}}
 
 # Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
   - task: AzureCLI@2
