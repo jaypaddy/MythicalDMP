@@ -40,23 +40,23 @@ variables:
     # concatenate "dmpcloud-core-" with parameter dmpcloud-core-env-abbreviation and suffix with "-rg"
     #Resource Groups
   - name: dmpcloud-core-env-rgname
-    value: replace('dmp-cloudcore-ENV-rg' , 'ENV', dmpcloud-core-env-abbreviation  }} 
+    value: replace('dmp-cloudcore-ENV-rg' , 'ENV', dmpcloud-core-env-abbreviation)
   - name: dmpcloud-core-env-arc-rgname
-    value: replace('dmp-cloudcore-ENV-arc-rg' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+    value: replace('dmp-cloudcore-ENV-arc-rg' , 'ENV',dmpcloud-core-env-abbreviation)
 
     #Resources
   - name: dmpcloud-core-env-akv-name 
-    value: replace('dmpcloudcoreENVakv' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+    value: replace('dmpcloudcoreENVakv' , 'ENV',dmpcloud-core-env-abbreviation)
   - name: dmpcloud-core-env-acr-name
-    value: replace('dmpcloudcoreENVacr' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+    value: replace('dmpcloudcoreENVacr' , 'ENV',dmpcloud-core-env-abbreviation) 
   - name: dmpcloud-core-env-law-name 
-    value: replace('dmpcloudcoreENVlaw' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+    value: replace('dmpcloudcoreENVlaw' , 'ENV',dmpcloud-core-env-abbreviation) 
   - name: dmpcloud-core-env-monwks-name 
-    value: replace('dmpcloudcoreENVmonwks' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+    value: replace('dmpcloudcoreENVmonwks' , 'ENV',dmpcloud-core-env-abbreviation) 
   - name: dmpcloud-core-env-grafana-name 
-    value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+    value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation) 
   - name: dmpcloud-core-env-grafana-name 
-    default: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation   }} 
+    default: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloud-core-env-abbreviation) 
  
 
    
