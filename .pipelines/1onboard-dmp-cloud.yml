@@ -196,6 +196,15 @@ steps:
             --location ${{  parameters.dmpcloudresourcelocation  }}
 
 
+          # SWITCH TO USER ASSIGNED MANAGED IDENTITY
+
+          # As Policy is DeployIfNotExists, we need to create the Policy Assignment first, then assign the Policy
+          # System Managed Identity, 'Contributor' access to the Arc Resource Group
+
+          # Get System Assigned Managed Identity for Policy Assignment
+          policyassignmentmanagedid=$(az policy assignment identity show --name 'DMP Edge Install Azure Policy extension' --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname  --query principalId -o tsv )       
+          az role assignment create --assignee $policyassignmentmanagedid --role Contributor --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname
+
           az policy assignment create \
             --name 'DMPEdge Install Flux extension on Kubernetes cluster' \
             --display-name 'Configure installation of Flux extension on Kubernetes cluster Assignment' \
@@ -203,5 +212,9 @@ steps:
             --policy 'f9175d5f-abc8-1dc3-bd3c-5d7476ada3d1' \
             --mi-system-assigned \
             --location ${{  parameters.dmpcloudresourcelocation  }}
+
+          # Get System Assigned Managed Identity for Policy Assignment
+          policyassignmentmanagedid=$(az policy assignment identity show --name 'DMPEdge Install Flux extension on Kubernetes cluster' --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname  --query principalId -o tsv )       
+          az role assignment create --assignee $policyassignmentmanagedid --role Contributor --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname
 
           echo "Assigned Policies for Scope $arcrgname"
