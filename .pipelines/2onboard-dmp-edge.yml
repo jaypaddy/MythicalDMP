@@ -68,7 +68,6 @@ steps:
 
   - task: AzureKeyVault@2
     inputs:
-      displayName: 'Get Secrets from dmpcloudplatformkv'
       azureSubscription: ${{ parameters.serviceConnectionName }}
       KeyVaultName: ${{ parameters.dmpcloudplatformkvname }}
       SecretsFilter: '*'
@@ -112,6 +111,21 @@ steps:
           --extension-type Microsoft.AzureMonitor.Containers.Metrics  \
           --configuration-settings azure-monitor-workspace-resource-id=$monwksresourceId grafana-resource-id=$grafanaresourceId
 
+# Enable Azure Key Vault Flux Extension
+  - task: AzureCLI@2
+    displayName: 'Enable Azure Key Vault Flux Extension'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash
+          az k8s-extension create \
+            --cluster-name ${{ parameters.dmpedgeclustername  }} \
+            --resource-group ${{ parameters.dmpedgeclusterrg  }} \
+            --cluster-type connectedClusters \
+            --extension-type Microsoft.AzureKeyVaultSecretsProvider --name akvsecretsprovider
+
 # Enable Flux GitOps Configuration
   - task: AzureCLI@2
     displayName: 'Enable Flux Git Configuration'
@@ -140,7 +154,7 @@ steps:
             --cluster-type connectedClusters  \
             --name ${{ variables.dmpedgegitopsconfigname}} \
             --kustomization-name platform \
-            --path /${{ parameters.dmpedgeclustername  }}/platform \
+            --path /${{ parameters.dmpedgeclustername  }}/Platform \
             --prune=true \
             --depends-on dmpfoundations
 
@@ -149,25 +163,12 @@ steps:
             --cluster-name ${{ parameters.dmpedgeclustername  }}  \
             --cluster-type connectedClusters  \
             --name ${{ variables.dmpedgegitopsconfigname}} \
-            --kustomization-name platform \
-            --path /${{ parameters.dmpedgeclustername  }}/apps \
+            --kustomization-name apps \
+            --path /${{ parameters.dmpedgeclustername  }}/Apps \
             --prune=true \
             --depends-on platform            
 
-# Enable Azure Key Vault Flux Extension
-  - task: AzureCLI@2
-    displayName: 'Enable Azure Key Vault Flux Extension'
-    inputs:
-      azureSubscription: ${{ parameters.serviceConnectionName }}
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      inlineScript: |
-        #!/bin/bash
-          az k8s-extension create \
-            --cluster-name ${{ parameters.dmpedgeclustername  }} \
-            --resource-group ${{ parameters.dmpedgeclusterrg  }} \
-            --cluster-type connectedClusters \
-            --extension-type Microsoft.AzureKeyVaultSecretsProvider --name akvsecretsprovider
+
 
 
 
