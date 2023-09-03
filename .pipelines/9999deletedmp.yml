@@ -3,52 +3,32 @@ parameters:
   - name: serviceConnectionName
     type: string
     default: 'mythicalDMPSubSPN'
-  - name: resourcelocation
-    type: string
+  - name: dmpcloudresourcelocation
+    type: string    
     default: 'eastus' 
-  - name: dmpcloudcoreenvabbreviation
-    type: string
+  - name: dmpcloudenvabbreviation
+    type: string    
     default: 'dev' 
-  - name: dmpcloud-core-rg-tags
-    type: object
-    default: {
-      "environment": "dev",
-      "costCenter": "dmp",
-      "project": "dmpcloud-core"
-    }
-  - name: dmpcloud-core-env-grafana-admins-principalids
-    type: string
-    #  Mounir EGA-GRAFANA-ADMINS
-    default: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
-  - name: dmpcloud-core-env-grafana-admins-principaltypes
-    type: string
-    # Mounir EGA-GRAFANA-ADMINS
-    default: ' User Group' 
-  # Grab from KV
-  - name: dmpcloud-core-subcon-applicationId
-    type: string
-    default:    
 
-
+# Environment Specific
 variables:
-    # concatenate "dmpcloud-core-" with parameter dmpcloudcoreenvabbreviation and suffix with "-rg"
     #Resource Groups
-  - name: dmpcloudcoreenvrgname
-    value: replace('dmp-cloudcore-ENV-rg' , 'ENV', dmpcloudcoreenvabbreviation) 
-  - name: dmpcloudcoreenvarcrgname
-    value: replace('dmp-cloudcore-ENV-arc-rg' , 'ENV',dmpcloudcoreenvabbreviation ) 
+  - name: dmpcloudenvrgname
+    value: 'dmpcloud-ENV-rg' 
+  - name: dmpcloudenvarcrgname
+    value: 'dmpcloud-ENV-arc-rg'
 
     #Resources
-  - name: dmpcloud-core-env-akv-name 
-    value: dmpcloudcoreENVakv 
-  - name: dmpcloudcoreenvacrname
-    value: replace('dmpcloudcoreENVacr' , 'ENV',dmpcloudcoreenvabbreviation ) 
-  - name: dmpcloudcoreenvlawname 
-    value: replace('dmpcloudcoreENVlaw' , 'ENV',dmpcloudcoreenvabbreviation ) 
-  - name: dmpcloudcoreenvmonwksname 
-    value: replace('dmpcloudcoreENVmonwks' , 'ENV',dmpcloudcoreenvabbreviation ) 
-  - name: dmpcloudcoreenvgrafananame 
-    value: replace('dmpcloudcoreENVgrafana' , 'ENV',dmpcloudcoreenvabbreviation ) 
+  - name: dmpcloudenvakvname 
+    value: 'dmpcloudENVakv' 
+  - name: dmpcloudenvacrname
+    value: 'dmpcloudENVacr'
+  - name: dmpcloudenvlawname 
+    value: 'dmpcloudENVlaw'
+  - name: dmpcloudenvmonwksname 
+    value: 'dmpcloudENVmonwks'
+  - name: dmpcloudenvgrafananame 
+    value: 'dmpcloudENVgrafana'
  
 
    
@@ -60,10 +40,6 @@ pool:
 steps:
   - checkout: self
 
-
-#dmpcloudcoreenvrgname [LogAnalytics, Monitor, ACR, Grafana]
-#dmpcloudcoreenvarcrgname [Arc for Kubernetes]
-#dmpcloud-core-env-akv-name [KeyVault]
 
 # Login to Azure
   - task: AzureCLI@2
@@ -77,130 +53,31 @@ steps:
         az account show
 
 
-# Create resource group for dmpcloudcoreenvrgname
+# Create resource group for dmpcloudenvrgname
   - task: AzureCLI@2
-    displayName: 'Delete Resource Group for DMP Cloud Core'
+    displayName: 'Create Resource Group for DMP Cloud Env'
     inputs:
-      azureSubscription: 'mythicalDMPSubSPN'
+      azureSubscription: ${{ parameters.serviceConnectionName }}
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
-          #!/bin/bash   
-          # Delete the main resource group
-          rgname=`echo $(dmpcloudcoreenvrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-          az group create --name $rgname --location $(resourcelocation)
-          az tag create --resource-group $rgname --tags $(resourcegrouptags)
+        #!/bin/bash   
+        # Create the main resource group
+        rgname=`echo ${{  variables.dmpcloudenvrgname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+        az group delete --name $rgname 
+        echo "Deleted  resource group $rgname"
 
-# Create dmpcloud-core-env ACR in dmp-cloud-core-dev-rg resource group
+         
+# Create dmpcloud-core-env ACR in dmpcloudenvrgname resource group
   - task: AzureCLI@2
-    displayName: 'Create dmpcloud-core-env ACR'
+    displayName: 'Create ACR'
     inputs:
-      azureSubscription: 'mythicalDMPSubSPN'
+      azureSubscription: ${{ parameters.serviceConnectionName }}
       scriptType: 'bash'
       scriptLocation: 'inlineScript'      
       inlineScript: |
           #!/bin/bash      
 
-          # Create Dev ACR directory
-          #             --allow-exports true  
-          rgname=`echo $(dmpcloudcoreenvrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-          acrname=`echo $(dmpcloudcoreenvacrname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-          az acr create --resource-group $rgname \
-            --name $(acrname) \
-            --sku Basic --admin-enabled false \
-            --location $(resourcelocation) 
-
-# Create Dev LogAnalytics Workspace in dmp-cloud-core-dev-rg Resource Group
-  - task: AzureCLI@2
-    displayName: 'Create LogAnalytics Workspace'
-    inputs:
-      azureSubscription: 'mythicalDMPSubSPN'
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'      
-      inlineScript: |
-          #!/bin/bash      
-          rgname=`echo $(dmpcloudcoreenvrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-          lawname=`echo $(dmpcloudcoreenvlawname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-
-          # Create Log Analytics Workspace
-          az monitor log-analytics workspace create \
-            --resource-group $rgname \
-            --workspace-name $lawname \
-            --location $(resourcelocation) 
-
-# Create Dev Monitor Workspace in dmp-cloud-core-dev-rg Resource Group
-  - task: AzureCLI@2
-    displayName: 'Create Azure Monitor Workspace'
-    inputs:
-      azureSubscription: 'mythicalDMPSubSPN'
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'      
-      inlineScript: |
-          #!/bin/bash    
-          rgname=`echo $(dmpcloudcoreenvrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-          monwksname=`echo $(dmpcloudcoreenvmonwksname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-
-          # Create Monitor Workspace
-          az resource create --resource-group $rgname  \
-          --namespace microsoft.monitor \
-          --resource-type accounts \
-          --name $monwksname\
-          --location $(resourcelocation) \
-          --properties {}
-
-# Create Managed Grafana in dmp-cloud-core-dev-rg Resource Group
-  - task: AzureCLI@2
-    displayName: 'Create Azure Managed Grafana'
-    inputs:
-      azureSubscription: 'mythicalDMPSubSPN'
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      inlineScript: |
-          #!/bin/bash    
-
-          rgname=`echo $(dmpcloudcoreenvrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-          grafananame =`echo $(dmpcloudcoreenvgrafananame) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-      
-          az grafana create --name $grafananame \
-          --resource-group $rgname \
-          --location $resourcelocation \
-          --principal-id $(dmpcloud-core-env-grafana-admins-principalids) \
-          --principal-types $(dmpcloud-core-env-grafana-admins-principaltypes)
-
-# Create resource group for Arc for Kubernetes 
-  - task: AzureCLI@2
-    displayName: 'Create Resource Group for DMP Arc for Kubernetes Clusters'
-    inputs:
-      azureSubscription: 'mythicalDMPSubSPN'
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'      
-      inlineScript: |
-          #!/bin/bash   
-          # Create the main resource group
-          arcrgname =`echo $(dmpcloudcoreenvarcrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-
-          az group create --name $rgname --location $(resourcelocation)
-          az tag create --resource-group $arcrgname --tags $(resourcegrouptags)
-
-# Assign Policies such that any Cluster that gets onboarded to Arc for Kubernetes the following Policies will apply
-  - task: AzureCLI@2
-    displayName: 'Assign Policies to Arc for Kubernetes'
-    inputs:
-      azureSubscription: 'mythicalDMPSubSPN'
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'      
-      inlineScript: |
-          #!/bin/bash   
-          arcrgname =`echo $(dmpcloudcoreenvarcrgname) | sed "s/'env'/$(dmpcloudcoreenvabbreviation)/"`
-          subscriptionId=$(az account show --query id --output tsv)
-          az policy assignment create \
-            --name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension' \
-            --display-name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension Assignment' \
-            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname \
-            --policy '/providers/Microsoft.Authorization/policyDefinitions/0adc5395-9169-4b9b-8687-af838d69410a'
-
-          az policy assignment create \
-            --name ''Configure installation of Flux extension on Kubernetes cluster' \
-            --display-name ''Configure installation of Flux extension on Kubernetes cluster Assignment' \
-            --scope /subscriptions/subscriptionId/resourceGroups/$arcrgname \
-            --policy '/providers/Microsoft.Authorization/policyDefinitions/f9175d5f-abc8-1dc3-bd3c-5d7476ada3d1'
+          rgname=`echo ${{  variables.dmpcloudenvarcrgname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+          az group delete --name $rgname 
+          echo "Deleted Resource Group $rgname"
