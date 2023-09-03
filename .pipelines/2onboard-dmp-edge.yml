@@ -4,7 +4,7 @@ name: Onboard DMP Edge
 parameters:
   - name: serviceConnectionName
     type: string
-    default: ${{ parameters.serviceConnectionName }}
+    default: 'mythicalDMPSubSPN'
   - name: dmpcloudcoreenvabbreviation
     type: string    
     default: 'dev'     
@@ -41,6 +41,9 @@ variables:
     value: 'dmpcloudENVmonwks'
   - name: dmpcloudenvgrafananame 
     value: 'dmpcloudENVgrafana'
+  - name: dmpedgegitopsconfigname
+    value: 'dmp-gitops-flux-config'
+    
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -122,7 +125,7 @@ steps:
             --name ${{ variables.dmpedgegitopsconfigname}} \
             --cluster-name ${{ parameters.dmpedgeclustername  }} \
             --resource-group ${{ parameters.dmpedgeclusterrg  }} \
-            --namespace ${{ parameters.dmpedgegitopsconfigname }} \
+            --namespace ${{ variables.dmpedgegitopsconfigname }} \
             --url $(DMPPLATFORMGITOPSROOTURL) \
             --https-user $(DMPPLATFORMGITOPSHTTPSUSER) \
             --https-key $(DMPPLATFORMGITOPSHTTPSKEY) \
