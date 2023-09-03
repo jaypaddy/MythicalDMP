@@ -1,0 +1,207 @@
+name: Onboard DMP Cloud
+
+parameters:
+  - name: serviceConnectionName
+    type: string
+    default: 'mythicalDMPSubSPN'
+  - name: dmpcloudresourcelocation
+    type: string    
+    default: 'eastus' 
+  - name: dmpcloudenvabbreviation
+    type: string    
+    default: 'dev' 
+  - name: dmpcloudrgtags
+    type: string    
+    default: "environment=dev costcenter=dmp project=dmp"
+  - name: dmpcloudenvgrafanaadminsprincipalids
+    type: string   
+    #  Mounir EGA-GRAFANA-ADMINS
+    default: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
+  - name: dmpcloudenvgrafanaadminsprincipaltypes
+    type: string    
+    # Mounir EGA-GRAFANA-ADMINS
+    default: ' User Group' 
+
+# Environment Specific
+variables:
+    #Resource Groups
+  - name: dmpcloudenvrgname
+    value: 'dmpcloud-ENV-rg' 
+  - name: dmpcloudenvarcrgname
+    value: 'dmpcloud-ENV-arc-rg'
+
+    #Resources
+  - name: dmpcloudenvakvname 
+    value: 'dmpcloudENVakv' 
+  - name: dmpcloudenvacrname
+    value: 'dmpcloudENVacr'
+  - name: dmpcloudenvlawname 
+    value: 'dmpcloudENVlaw'
+  - name: dmpcloudenvmonwksname 
+    value: 'dmpcloudENVmonwks'
+  - name: dmpcloudenvgrafananame 
+    value: 'dmpcloudENVgrafana'
+ 
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - checkout: self
+
+
+#dmpcloudenvrgname [LogAnalytics, Monitor, ACR, Grafana]
+#dmpcloudenvarcrgname [Arc for Kubernetes]
+
+# Login to Azure
+  - task: AzureCLI@2
+    displayName: 'Azure Account'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash
+        az account show
+
+# Create resource group for dmpcloudenvrgname
+  - task: AzureCLI@2
+    displayName: 'Create Resource Group for DMP Cloud Core'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash   
+        # Create the main resource group
+        rgname=`echo ${{  variables.dmpcloudenvrgname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+        az group create --name $rgname --location ${{  parameters.dmpcloudresourcelocation  }} --tags ${{  parameters.dmpcloudrgtags  }}
+        echo "Created resource group $rgname"
+
+# Create dmpcloud-core-env ACR in dmpcloudenvrgname resource group
+  - task: AzureCLI@2
+    displayName: 'Create ACR'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
+      inlineScript: |
+          #!/bin/bash      
+
+          # Create Dev ACR directory
+          #             --allow-exports true  
+          rgname=`echo ${{  variables.dmpcloudenvarcrgname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+          acrname=`echo ${{  variables.dmpcloudenvacrname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+          echo $rgname
+          echo $acrname
+          az group create --name $rgname --location ${{  parameters.dmpcloudresourcelocation  }} --tags ${{  parameters.dmpcloudrgtags  }}
+          az acr create --resource-group $rgname \
+            --name $acrname \
+            --sku Basic \
+            --admin-enabled false \
+            --location ${{  parameters.dmpcloudresourcelocation  }} 
+          echo "Created ACR $acrname in $rgname"
+
+# Create  LogAnalytics Workspace in dmpcloudenvrgname Resource Group
+  - task: AzureCLI@2
+    displayName: 'Create LogAnalytics Workspace'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
+      inlineScript: |
+          #!/bin/bash      
+          rgname=`echo ${{  variables.dmpcloudenvrgname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+          lawname=`echo ${{  variables.dmpcloudenvlawname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+
+          # Create Log Analytics Workspace
+          az monitor log-analytics workspace create \
+            --resource-group $rgname \
+            --workspace-name $lawname \
+            --location ${{  parameters.dmpcloudresourcelocation  }} 
+          echo "Created Monitor Log Analytics Workspace $lawname in $rgname"
+
+# Create  Monitor Workspace in dmpcloudenvrgname Resource Group
+  - task: AzureCLI@2
+    displayName: 'Create Azure Monitor Workspace'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
+      inlineScript: |
+          #!/bin/bash    
+          rgname=`echo ${{variables.dmpcloudenvrgname}} | sed "s/ENV/${{parameters.dmpcloudenvabbreviation}}/"`
+          monwksname=`echo ${{variables.dmpcloudenvmonwksname}} | sed "s/ENV/${{parameters.dmpcloudenvabbreviation}}/"`
+          # Create Monitor Workspace
+          az resource create --resource-group $rgname  \
+          --namespace microsoft.monitor \
+          --resource-type accounts \
+          --name $monwksname \
+          --location ${{parameters.dmpcloudresourcelocation}}  \
+          --properties {}
+          echo "Created Monitor Monitor Workspace $monwksname in $rgname"
+
+# Create Managed Grafana in dmpcloudenvrgname Resource Group
+  - task: AzureCLI@2
+    displayName: 'Create Azure Managed Grafana'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+          #!/bin/bash    
+
+          rgname=`echo ${{  variables.dmpcloudenvrgname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+          grafananame=`echo ${{  variables.dmpcloudenvgrafananame  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+      
+          az grafana create --name $grafananame \
+          --resource-group $rgname \
+          --location ${{  parameters.dmpcloudresourcelocation  }} \
+          --principal-id ${{  parameters.dmpcloudenvgrafanaadminsprincipalids  }} \
+          --principal-types ${{  parameters.dmpcloudenvgrafanaadminsprincipaltypes  }}
+          echo "Created Azure Managed Grafana $grafananame in $rgname"
+
+# Create resource group for Arc for Kubernetes 
+  - task: AzureCLI@2
+    displayName: 'Create Resource Group for DMP Arc for Kubernetes Clusters'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
+      inlineScript: |
+          #!/bin/bash   
+          # Create the main resource group
+          arcrgname=`echo ${{  variables.dmpcloudenvarcrgname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+
+          az group create --name $arcrgname --location ${{  parameters.dmpcloudresourcelocation  }} --tags ${{  parameters.dmpcloudrgtags  }}
+          echo "Created Resource Group for DMP Arc for Kubernetes $arcrgname"
+
+# Assign Policies such that any Cluster that gets onboarded to Arc for Kubernetes the following Policies will apply
+  - task: AzureCLI@2
+    displayName: 'Assign Policies to Arc for Kubernetes'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'      
+      inlineScript: |
+          #!/bin/bash   
+          arcrgname=`echo ${{  variables.dmpcloudenvarcrgname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
+          subscriptionId=$(az account show --query id --output tsv)
+
+          az policy assignment create  --name 'DMP Edge Install Azure Policy extension'  \
+            --display-name 'Configure Azure Arc enabled Kubernetes clusters to install the Azure Policy extension Assignment' \
+            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname \
+            --policy '0adc5395-9169-4b9b-8687-af838d69410a' \
+            --mi-system-assigned \
+            --location ${{  parameters.dmpcloudresourcelocation  }}
+
+
+          az policy assignment create \
+            --name 'DMPEdge Install Flux extension on Kubernetes cluster' \
+            --display-name 'Configure installation of Flux extension on Kubernetes cluster Assignment' \
+            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname \
+            --policy 'f9175d5f-abc8-1dc3-bd3c-5d7476ada3d1' \
+            --mi-system-assigned \
+            --location ${{  parameters.dmpcloudresourcelocation  }}
+
+          echo "Assigned Policies for Scope $arcrgname"
