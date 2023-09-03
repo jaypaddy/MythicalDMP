@@ -68,6 +68,7 @@ steps:
 
   - task: AzureKeyVault@2
     inputs:
+      displayName: 'Get Secrets from dmpcloudplatformkv'
       azureSubscription: ${{ parameters.serviceConnectionName }}
       KeyVaultName: ${{ parameters.dmpcloudplatformkvname }}
       SecretsFilter: '*'
@@ -75,7 +76,7 @@ steps:
 
 # Enable Azure Monitoring Extension Onboarding
   - task: AzureCLI@2
-    displayName: 'Enable Flux Git Configuration'
+    displayName: 'Enable Azure Monitoring Extension Onboarding'
     inputs:
       azureSubscription: ${{ parameters.serviceConnectionName }}
       scriptType: 'bash'
@@ -88,7 +89,6 @@ steps:
         lawresourceId=$(az resource show -n $lawname --resource-type Microsoft.OperationalInsights/workspaces --resource-group $rgname --query id --output tsv)
 
 
-        az k8s-extension create --name azuremonitor-containers --cluster-name mythicalnuc --resource-group MythicalAliceSpringsPP1_RG --cluster-type connectedClusters --extension-type Microsoft.AzureMonitor.Containers --configuration-settings logAnalyticsWorkspaceResourceID=/subscriptions/d0272d81-bf47-4f2b-b8dc-c56cb783e361/resourceGroups/dmpcloudcoredevrg/providers/Microsoft.OperationalInsights/workspaces/dmpcloudcoredevlaw --configuration-settings amalogs.resources.daemonset.limits.cpu=150m amalogs.resources.daemonset.limits.memory=600Mi amalogs.resources.deployment.limits.cpu=1 amalogs.resources.deployment.limits.memory=750Mi
         az k8s-extension create \
           --name azuremonitor-containers \
           --cluster-name ${{ parameters.dmpedgeclustername  }} \
@@ -134,13 +134,6 @@ steps:
             --branch master \
             --kustomization name=dmpfoundations prune=true path=/DMPFoundations/All 
           
-          az k8s-configuration flux kustomization create \
-            --cluster-name ${{ parameters.dmpedgeclustername  }} \
-            --resource-group ${{ parameters.dmpedgeclusterrg  }} \
-            --cluster-type connectedClusters  \
-            --name ${{ variables.dmpedgegitopsconfigname}} \
-            --kustomization-name platform --path /${{ parameters.dmpedgeclustername  }}/platform --prune=true --force dependsOn=\["dmpfoundations"\]
-
           az k8s-configuration flux kustomization create 
             --resource-group ${{ parameters.dmpedgeclusterrg  }} \
             --cluster-name ${{ parameters.dmpedgeclustername  }}  \
