@@ -69,7 +69,7 @@ steps:
   - task: AzureKeyVault@2
     inputs:
       azureSubscription: ${{ parameters.serviceConnectionName }}
-      KeyVaultName: $$ {{ parameters.dmpcloudplatformkvname }}
+      KeyVaultName: $ {{ parameters.dmpcloudplatformkvname }}
       SecretsFilter: '*'
       RunAsPreJob: true
 
