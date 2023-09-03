@@ -10,3 +10,14 @@ az policy assignment create  --name 'AzureArck8s Azure Policy extension'  --disp
 az policy definition list --query "[?displayName=='Azure Arc enabled Kubernetes clusters should have the Azure Policy extension installed']"
 
 az policy definition list --query "[?displayName=='Configure installation of Flux extension on Kubernetes cluster']"
+
+
+          #az k8s-configuration flux create --name dmp-gitops-flux-config --cluster-name mythicalnuc --namespace dmpfoundations-ns  --resource-group MythicalAliceSpringsPP1_RG --url "https://dev.azure.com/mythicaljaypaddy/MythicalDMP/_git/MythicalDMPGitopsDev" --https-user mythicaljaypaddy --https-key 5ndcjihajpu2qeccdvctkbopapmu7y3zmneubh76i6fn3higxgda --scope cluster --cluster-type connectedClusters --branch main --kustomization name=dmpfoundations prune=true path=/DMPFoundations/All 
+
+          az k8s-configuration flux kustomization create --resource-group MythicalAliceSpringsPP1_RG --cluster-name mythicalnuc --cluster-type connectedClusters  --name dmp-gitops-flux-config --kustomization-name platform --path /mythicalnuc/platform --prune=true --depends-on dmpfoundations
+          az k8s-configuration flux kustomization create --resource-group MythicalAliceSpringsPP1_RG --cluster-name mythicalnuc --cluster-type connectedClusters  --name dmp-gitops-flux-config --kustomization-name apps --path /mythicalnuc/apps --prune=true --depends-on platform
+
+
+az k8s-configuration flux create --name gitops-flux-config --cluster-name $clustername --namespace gitops-flux-config-ns --resource-group $resourcegroup --url $gitopsurl --https-user $gitopsusername --https-key $gitopspatkey --scope cluster --cluster-type connectedClusters --branch master --kustomization name=platform prune=true path=/Platform --kustomization name=apps path=/$clustername prune=true dependsOn=\["platform"\]
+
+

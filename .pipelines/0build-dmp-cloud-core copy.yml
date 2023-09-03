@@ -1,0 +1,51 @@
+parameters:
+  - name: serviceConnectionName
+    type: string
+    default: 'mythicalDMPSubSPN'
+  - name: dmpcloudresourcelocation
+    type: string    
+    default: 'eastus' 
+  - name: dmpcloudrgtags
+    type: string    
+    default: "environment=dev costcenter=dmp project=dmp"
+
+# Environment Specific
+variables:
+    #Resource Groups
+  - name: dmpcloudrgname
+    value: 'dmp-cloud-rg' 
+
+    #Resources
+  - name: dmpcloudenvakvname 
+    value: 'dmpcloudplatformkv' 
+ 
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - checkout: self
+
+# Login to Azure
+  - task: AzureCLI@2
+    displayName: 'Azure Account'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash
+        az account show
+
+# Create resource group for dmpcloudenvrgname
+  - task: AzureCLI@2
+    displayName: 'Create Resource Group for DMP Cloud Core'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash   
+        # Create the main resource group
+        az group create --name ${{  variables.dmpcloudrgname  }} --location ${{  parameters.dmpcloudresourcelocation  }} --tags ${{  parameters.dmpcloudrgtags  }}
+        echo "Created resource group $rgname"

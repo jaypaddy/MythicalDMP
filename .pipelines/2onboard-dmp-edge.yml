@@ -1,0 +1,181 @@
+name: Onboard DMP Edge
+
+
+parameters:
+  - name: serviceConnectionName
+    type: string
+    default: ${{ parameters.serviceConnectionName }}
+  - name: dmpcloudcoreenvabbreviation
+    type: string    
+    default: 'dev'     
+  - name: dmpedgeclustername
+    type: string    
+    default: 'mythicalnuc' 
+  - name: dmpedgeclusterrg
+    type: string    
+    default: 'dmpcloud-dev-arc-rg' 
+  - name: dmpcloudcorergtags
+    type: string    
+    default: "environment=dev costCenter=dmp project=dmpcloud-core"
+  - name: dmpcloudplatformkvname
+    type: string    
+    default: "dmpcloudplatformkv"    
+
+
+# Environment Specific
+variables:
+    #Resource Groups
+  - name: dmpcloudenvrgname
+    value: 'dmpcloud-ENV-rg' 
+  - name: dmpcloudenvarcrgname
+    value: 'dmpcloud-ENV-arc-rg'
+
+    #Resources
+  - name: dmpcloudenvakvname 
+    value: 'dmpcloudENVakv' 
+  - name: dmpcloudenvacrname
+    value: 'dmpcloudENVacr'
+  - name: dmpcloudenvlawname 
+    value: 'dmpcloudENVlaw'
+  - name: dmpcloudenvmonwksname 
+    value: 'dmpcloudENVmonwks'
+  - name: dmpcloudenvgrafananame 
+    value: 'dmpcloudENVgrafana'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - checkout: self
+
+# Prerequisites
+# DMPCloud Core is deployed
+# Cluster is Arc Connected
+
+# Login to Azure
+  - task: AzureCLI@2
+    displayName: 'Azure Account'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash
+        az account show
+
+  - task: AzureKeyVault@2
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      KeyVaultName: $$ {{ parameters.dmpcloudplatformkvname }}
+      SecretsFilter: '*'
+      RunAsPreJob: true
+
+# Enable Azure Monitoring Extension Onboarding
+  - task: AzureCLI@2
+    displayName: 'Enable Flux Git Configuration'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash
+
+        rgname=`echo ${{  variables.dmpcloudenvrgname  }} | sed "s/ENV/${{parameters.dmpcloudcoreenvabbreviation  }}/"`
+        lawname=`echo ${{  variables.dmpcloudenvlawname  }} | sed "s/ENV/${{parameters.dmpcloudcoreenvabbreviation  }}/"`
+        lawresourceId=$(az resource show -n $lawname --resource-type Microsoft.OperationalInsights/workspaces --resource-group $rgname --query id --output tsv)
+
+
+        az k8s-extension create --name azuremonitor-containers --cluster-name mythicalnuc --resource-group MythicalAliceSpringsPP1_RG --cluster-type connectedClusters --extension-type Microsoft.AzureMonitor.Containers --configuration-settings logAnalyticsWorkspaceResourceID=/subscriptions/d0272d81-bf47-4f2b-b8dc-c56cb783e361/resourceGroups/dmpcloudcoredevrg/providers/Microsoft.OperationalInsights/workspaces/dmpcloudcoredevlaw --configuration-settings amalogs.resources.daemonset.limits.cpu=150m amalogs.resources.daemonset.limits.memory=600Mi amalogs.resources.deployment.limits.cpu=1 amalogs.resources.deployment.limits.memory=750Mi
+        az k8s-extension create \
+          --name azuremonitor-containers \
+          --cluster-name ${{ parameters.dmpedgeclustername  }} \
+          --resource-group ${{ parameters.dmpedgeclusterrg  }} \
+          --cluster-type connectedClusters \
+          --extension-type Microsoft.AzureMonitor.Containers \
+          --configuration-settings logAnalyticsWorkspaceResourceID=$lawresourceId \
+          --configuration-settings amalogs.resources.daemonset.limits.cpu=150m amalogs.resources.daemonset.limits.memory=600Mi amalogs.resources.deployment.limits.cpu=1 amalogs.resources.deployment.limits.memory=750Mi
+
+        rgname=`echo ${{  variables.dmpcloudenvrgname  }} | sed "s/ENV/${{  parameters.dmpcloudcoreenvabbreviation  }}/"`
+        monwksname=`echo ${{  variables.dmpcloudenvmonwksname  }} | sed "s/ENV/${{  parameters.dmpcloudcoreenvabbreviation  }}/"`
+        monwksresourceId=$(az resource show -n $monwksname --resource-type Microsoft.Monitor/accounts --resource-group $rgname --query id --output tsv)
+        grafananame=`echo ${{  variables.dmpcloudenvgrafananame  }} | sed "s/ENV/${{  parameters.dmpcloudcoreenvabbreviation  }}/"`
+        grafanaresourceId=$(az resource show -n $grafananame --resource-type microsoft.dashboard/grafana --resource-group $rgname --query id --output tsv)
+
+        az k8s-extension create \
+          --name azuremonitor-metrics \
+          --cluster-name ${{ parameters.dmpedgeclustername  }} \
+          --resource-group ${{ parameters.dmpedgeclusterrg  }} \
+          --cluster-type connectedClusters \
+          --extension-type Microsoft.AzureMonitor.Containers.Metrics  \
+          --configuration-settings azure-monitor-workspace-resource-id=$monwksresourceId grafana-resource-id=$grafanaresourceId
+
+# Enable Flux GitOps Configuration
+  - task: AzureCLI@2
+    displayName: 'Enable Flux Git Configuration'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash
+          az k8s-configuration flux create\
+            --name ${{ variables.dmpedgegitopsconfigname}} \
+            --cluster-name ${{ parameters.dmpedgeclustername  }} \
+            --resource-group ${{ parameters.dmpedgeclusterrg  }} \
+            --namespace ${{ parameters.dmpedgegitopsconfigname }} \
+            --url $(DMPPLATFORMGITOPSROOTURL) \
+            --https-user $(DMPPLATFORMGITOPSHTTPSUSER) \
+            --https-key $(DMPPLATFORMGITOPSHTTPSKEY) \
+            --scope cluster \
+            --cluster-type connectedClusters \
+            --branch master \
+            --kustomization name=dmpfoundations prune=true path=/DMPFoundations/All 
+          
+          az k8s-configuration flux kustomization create \
+            --cluster-name ${{ parameters.dmpedgeclustername  }} \
+            --resource-group ${{ parameters.dmpedgeclusterrg  }} \
+            --cluster-type connectedClusters  \
+            --name ${{ variables.dmpedgegitopsconfigname}} \
+            --kustomization-name platform --path /${{ parameters.dmpedgeclustername  }}/platform --prune=true --force dependsOn=\["dmpfoundations"\]
+
+          az k8s-configuration flux kustomization create 
+            --resource-group ${{ parameters.dmpedgeclusterrg  }} \
+            --cluster-name ${{ parameters.dmpedgeclustername  }}  \
+            --cluster-type connectedClusters  \
+            --name ${{ variables.dmpedgegitopsconfigname}} \
+            --kustomization-name platform \
+            --path /${{ parameters.dmpedgeclustername  }}/platform \
+            --prune=true \
+            --depends-on dmpfoundations
+
+          az k8s-configuration flux kustomization create 
+            --resource-group ${{ parameters.dmpedgeclusterrg  }} \
+            --cluster-name ${{ parameters.dmpedgeclustername  }}  \
+            --cluster-type connectedClusters  \
+            --name ${{ variables.dmpedgegitopsconfigname}} \
+            --kustomization-name platform \
+            --path /${{ parameters.dmpedgeclustername  }}/apps \
+            --prune=true \
+            --depends-on platform            
+
+# Enable Azure Key Vault Flux Extension
+  - task: AzureCLI@2
+    displayName: 'Enable Azure Key Vault Flux Extension'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash
+          az k8s-extension create \
+            --cluster-name ${{ parameters.dmpedgeclustername  }} \
+            --resource-group ${{ parameters.dmpedgeclusterrg  }} \
+            --cluster-type connectedClusters \
+            --extension-type Microsoft.AzureKeyVaultSecretsProvider --name akvsecretsprovider
+
+
+
+
+
+
+
