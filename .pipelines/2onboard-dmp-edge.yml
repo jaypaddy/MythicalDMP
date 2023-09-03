@@ -19,7 +19,7 @@ parameters:
     default: "environment=dev costCenter=dmp project=dmpcloud-core"
   - name: dmpcloudplatformkvname
     type: string    
-    default: "dmpcloudplatformkv"    
+    default: 'dmpcloudplatformkv'    
 
 
 # Environment Specific
