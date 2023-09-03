@@ -131,10 +131,10 @@ steps:
             --https-key $(DMPPLATFORMGITOPSHTTPSKEY) \
             --scope cluster \
             --cluster-type connectedClusters \
-            --branch master \
+            --branch main \
             --kustomization name=dmpfoundations prune=true path=/DMPFoundations/All 
           
-          az k8s-configuration flux kustomization create 
+          az k8s-configuration flux kustomization create \
             --resource-group ${{ parameters.dmpedgeclusterrg  }} \
             --cluster-name ${{ parameters.dmpedgeclustername  }}  \
             --cluster-type connectedClusters  \
@@ -144,7 +144,7 @@ steps:
             --prune=true \
             --depends-on dmpfoundations
 
-          az k8s-configuration flux kustomization create 
+          az k8s-configuration flux kustomization create \
             --resource-group ${{ parameters.dmpedgeclusterrg  }} \
             --cluster-name ${{ parameters.dmpedgeclustername  }}  \
             --cluster-type connectedClusters  \
