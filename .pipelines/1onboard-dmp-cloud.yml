@@ -13,14 +13,11 @@ parameters:
   - name: dmpcloudrgtags
     type: string    
     default: "environment=dev costcenter=dmp project=dmp"
-  - name: dmpcloudenvgrafanaadminsprincipalids
+  - name: dmpcloudenvgrafanaadminsgroupid
     type: string   
-    #  Mounir EGA-GRAFANA-ADMINS
-    default: '79b6f6c1-e8b6-4579-8877-f93db40f85d7 75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
-  - name: dmpcloudenvgrafanaadminsprincipaltypes
-    type: string    
-    # Mounir EGA-GRAFANA-ADMINS
-    default: ' User Group' 
+    #  EGA-GRAFANA-ADMINS-GROUP
+    default: '75d2910c-f7e6-4fbd-8665-8200d96e3be6'   
+
 
 # Environment Specific
 variables:
@@ -127,7 +124,7 @@ steps:
     inputs:
       azureSubscription: ${{ parameters.serviceConnectionName }}
       scriptType: 'bash'
-      scriptLocation: 'inlineScript'      
+      scriptLocation: 'inlineScript' 
       inlineScript: |
           #!/bin/bash    
           rgname=`echo ${{variables.dmpcloudenvrgname}} | sed "s/ENV/${{parameters.dmpcloudenvabbreviation}}/"`
@@ -141,6 +138,10 @@ steps:
           --properties {}
           echo "Created Monitor Monitor Workspace $monwksname in $rgname"
 
+#Set up Azure Managed Grafana authentication and permissions
+#https://learn.microsoft.com/en-us/azure/managed-grafana/how-to-authentication-permissions?tabs=azure-cli
+
+
 # Create Managed Grafana in dmpcloudenvrgname Resource Group
   - task: AzureCLI@2
     displayName: 'Create Azure Managed Grafana'
@@ -148,17 +149,48 @@ steps:
       azureSubscription: ${{ parameters.serviceConnectionName }}
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
+      addSpnToEnvironment:  true        
       inlineScript: |
           #!/bin/bash    
 
           rgname=`echo ${{  variables.dmpcloudenvrgname  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
           grafananame=`echo ${{  variables.dmpcloudenvgrafananame  }} | sed "s/ENV/${{  parameters.dmpcloudenvabbreviation  }}/"`
       
+          # System assigned Managed Identity is the Default authentication method for Azure Managed Grafana
+          # https://docs.microsoft.com/en-us/azure/azure-monitor/visualize/managed-grafana#authentication-methods
+          # https://docs.microsoft.com/en-us/azure/azure-monitor/visualize/managed-grafana#permissions
+          # https://docs.microsoft.com/en-us/azure/azure-monitor/visualize/managed-grafana#azure-cli
+
+
+          # For execution of this script the Owner or Administrator role on this subscription to the SPN is required
           az grafana create --name $grafananame \
           --resource-group $rgname \
-          --location ${{  parameters.dmpcloudresourcelocation  }} \
-          --principal-id ${{  parameters.dmpcloudenvgrafanaadminsprincipalids  }} \
-          --principal-types ${{  parameters.dmpcloudenvgrafanaadminsprincipaltypes  }}
+          --location ${{  parameters.dmpcloudresourcelocation  }} 
+
+          subscriptionId=$(az account show --query id --output tsv)
+
+          # Assign access using Azure RBAC 
+          # https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli  
+
+          # User defined Group ObjectId         
+          az role assignment create \
+            --assignee-object-id ${{  parameters.dmpcloudenvgrafanaadminsgroupid  }} \
+            --assignee-principal-type Group \
+            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname/providers/Microsoft.Dashboard/grafana/$grafananame \    
+            --role "Grafana Admin" 
+        
+          #Get ObjectId of ServiceConnection's Service Principal (this pipeline execution)
+          SPNobjectId=`az ad sp show --id %servicePrincipalId% --query id -o tsv`
+
+          # Assign DMP Platform SPN - ${{ parameters.serviceConnectionName }} as Grafana Admin
+          az role assignment create \
+            --assignee-object-id $SPNobjectId \
+            --assignee-principal-type ServicePrincipal \
+            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname/providers/Microsoft.Dashboard/grafana/$grafananame \    
+            --role "Grafana Admin" 
+   
+
+
           echo "Created Azure Managed Grafana $grafananame in $rgname"
 
 # Create resource group for Arc for Kubernetes 
