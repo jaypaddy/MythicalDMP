@@ -183,7 +183,7 @@ steps:
           echo "Assigned ${{  parameters.dmpcloudenvgrafanaadminsgroupid  }} role assignment of Grafana Admin to $grafananame in $rgname"
 
           #Get ObjectId of ServiceConnection's Service Principal (this pipeline execution)
-          SPNobjectId=$(az ad sp show --id %servicePrincipalId% --query id -o tsv)
+          SPNobjectId=$(az ad sp show --id $servicePrincipalId --query id -o tsv)
 
           # Assign DMP Platform SPN - ${{ parameters.serviceConnectionName }} as Grafana Admin
           az role assignment create \
@@ -192,7 +192,7 @@ steps:
             --scope /subscriptions/$subscriptionId/resourceGroups/$rgname/providers/Microsoft.Dashboard/grafana/$grafananame \    
             --role "Grafana Admin" 
    
-          echo "Assigned %servicePrincipalId% role assignment of Grafana Admin to $grafananame in $rgname"
+          echo "Assigned $servicePrincipalId role assignment of Grafana Admin to $grafananame in $rgname"
 
 
           echo "Created Azure Managed Grafana $grafananame in $rgname"
