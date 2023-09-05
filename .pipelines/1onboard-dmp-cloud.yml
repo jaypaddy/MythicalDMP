@@ -177,7 +177,7 @@ stage:
           az role assignment create \
             --assignee-object-id ${{  parameters.dmpcloudenvgrafanaadminsgroupid  }} \
             --assignee-principal-type Group \
-            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname/providers/Microsoft.Dashboard/grafana/$grafananame \    
+            --scope /subscriptions/$subscriptionId/resourceGroups/$rgname/providers/Microsoft.Dashboard/grafana/$grafananame \    
             --role "Grafana Admin" 
         
           #Get ObjectId of ServiceConnection's Service Principal (this pipeline execution)
@@ -187,7 +187,7 @@ stage:
           az role assignment create \
             --assignee-object-id $SPNobjectId \
             --assignee-principal-type ServicePrincipal \
-            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname/providers/Microsoft.Dashboard/grafana/$grafananame \    
+            --scope /subscriptions/$subscriptionId/resourceGroups/$rgname/providers/Microsoft.Dashboard/grafana/$grafananame \    
             --role "Grafana Admin" 
    
 
