@@ -49,7 +49,7 @@ steps:
 
 #dmpcloudenvrgname [LogAnalytics, Monitor, ACR, Grafana]
 #dmpcloudenvarcrgname [Arc for Kubernetes]
-stage:
+
 
 # Login to Azure
   - task: AzureCLI@2
