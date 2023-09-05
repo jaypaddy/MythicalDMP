@@ -49,6 +49,7 @@ steps:
 
 #dmpcloudenvrgname [LogAnalytics, Monitor, ACR, Grafana]
 #dmpcloudenvarcrgname [Arc for Kubernetes]
+stage:
 
 # Login to Azure
   - task: AzureCLI@2
@@ -231,11 +232,16 @@ steps:
           # SWITCH TO USER ASSIGNED MANAGED IDENTITY
 
           # As Policy is DeployIfNotExists, we need to create the Policy Assignment first, then assign the Policy
-          # System Managed Identity, 'Contributor' access to the Arc Resource Group
+          # System Managed Identity should have 'Contributor' access to the Arc Resource Group otherwise the Extension will not deploy
 
           # Get System Assigned Managed Identity for Policy Assignment
           policyassignmentmanagedid=$(az policy assignment identity show --name 'DMP Edge Install Azure Policy extension' --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname  --query principalId -o tsv )       
-          az role assignment create --assignee $policyassignmentmanagedid --role Contributor --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname
+          # Assign the System Managed Identity to the Arc Resource Group As Contributor, otherwise Extension DeployIfNotExists will not work
+          az role assignment create \
+            --assignee-object-id $policyassignmentmanagedid \
+            --assignee-principal-type ServicePrincipal \
+            --role Contributor \
+            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname
 
           az policy assignment create \
             --name 'DMPEdge Install Flux extension on Kubernetes cluster' \
@@ -247,6 +253,10 @@ steps:
 
           # Get System Assigned Managed Identity for Policy Assignment
           policyassignmentmanagedid=$(az policy assignment identity show --name 'DMPEdge Install Flux extension on Kubernetes cluster' --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname  --query principalId -o tsv )       
-          az role assignment create --assignee $policyassignmentmanagedid --role Contributor --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname
+          az role assignment create \
+            --assignee-object-id $policyassignmentmanagedid \
+            --assignee-principal-type ServicePrincipal \
+            --role Contributor \
+            --scope /subscriptions/$subscriptionId/resourceGroups/$arcrgname
 
           echo "Assigned Policies for Scope $arcrgname"

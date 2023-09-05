@@ -1,0 +1,36 @@
+name: Onboard DMP Edge
+
+
+parameters:
+  - name: serviceConnectionName
+    type: string
+    default: 'mythicalDMPSubSPN'
+  - name: dmpcloudcoreenvabbreviation
+    type: string    
+    default: 'dev'     
+  - name: dmpedgeclustername
+    type: string    
+    default: 'mythicalnuc' 
+  - name: dmpedgeclusterrg
+    type: string    
+    default: 'dmpcloud-dev-arc-rg' 
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - checkout: self
+
+# Login to Azure
+  - task: AzureCLI@2
+    displayName: 'Azure Account'
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnectionName }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        #!/bin/bash
+        ARM_ID_CLUSTER=$(az connectedk8s show -n ${{ parameters.dmpedgeclustername  }} -g ${{ parameters.dmpedgeclusterrg  }}--query id -o tsv)
+        AAD_ENTITY_OBJECT_ID=$(az ad signed-in-user show --query id -o tsv)
+        az role assignment create --role "Azure Arc Kubernetes Viewer" --assignee $AAD_ENTITY_OBJECT_ID --scope $ARM_ID_CLUSTER
+        az role assignment create --role "Azure Arc Enabled Kubernetes Cluster User Role" --assignee $AAD_ENTITY_OBJECT_ID --scope $ARM_ID_CLUSTER

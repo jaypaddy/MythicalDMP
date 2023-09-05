@@ -113,7 +113,7 @@ steps:
 
 # Enable Azure Key Vault Flux Extension
   - task: AzureCLI@2
-    displayName: 'Enable Azure Key Vault Flux Extension'
+    displayName: 'Enable Azure Key Vault  Extension'
     inputs:
       azureSubscription: ${{ parameters.serviceConnectionName }}
       scriptType: 'bash'
